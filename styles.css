@@ -494,6 +494,10 @@ a:hover {
 /* Responsive */
 @media (max-width: 768px) {
 
+    body {
+        min-height: 120vh;
+    }
+
     nav a {
        
         white-space: nowrap; /* Запрещает перенос текста */
