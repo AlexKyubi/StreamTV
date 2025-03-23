@@ -133,7 +133,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 
 
-const SERVER_IP = "192.168.1.200";   
+const LOCAL_WS_IP = "192.168.1.200";   
 const WS_PORT = 8765;
 let ws;
 
@@ -147,7 +147,17 @@ function sendControl(command) {
 }
 
 function connectWebSocket() {
-    ws = new WebSocket(`ws://${SERVER_IP}:${WS_PORT}`);
+    const isLocal = location.hostname.startsWith("192.168.") || location.hostname === "localhost";
+
+    // Если сайт открыт по HTTPS и ты не в локальной сети — не подключаемся
+    if (location.protocol === "https:" && !isLocal) {
+        console.warn("⛔ WebSocket не подключён: вы не в локальной сети");
+        updateStatus(false);
+        return;
+    }
+
+    const wsURL = `ws://${LOCAL_WS_IP}:${WS_PORT}`;
+    ws = new WebSocket(wsURL);
 
     ws.onopen = () => {
         console.log("🔌 WebSocket подключён");
@@ -173,6 +183,7 @@ function connectWebSocket() {
         setTimeout(connectWebSocket, 5000);
     };
 }
+
 
 window.addEventListener("load", () => {
     connectWebSocket();
