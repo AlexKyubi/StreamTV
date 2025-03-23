@@ -62,7 +62,7 @@ body {
 nav {
     background: url('./web/header-bg.jpg');
     background-size: cover;
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
@@ -129,14 +129,16 @@ nav a {
 
 
 #sidebar {
-    position: fixed;
-    top: 60px; /* ⚠️ высота панели навигации */
+    position: sticky;
+    margin-top: -768px;
+    top: 60px;
     left: 0;
-    height: calc(100% - 60px); /* ← чтобы не залазил под nav */
     width: 250px;
+    height: calc(100vh - 60px); /* заменили на 100vh */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow: hidden; /* важно */
     z-index: 998;
     background: repeating-linear-gradient(
         45deg,
@@ -170,17 +172,17 @@ nav a {
 }
 
 .sidebar-content {
-    position: relative;
-    top: 90px;
-    padding: 30px 15px; /* отступ сверху — оттолкнуться от nav */
+    flex-grow: 1;
+    padding: 20px 15px;
+    overflow-y: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
     gap: 18px;
     justify-content: flex-start;
-    flex-grow: 1;      /* ✅ Растягивается вниз */
-    margin-top: 60px;
 }
+
+
 
 
 .sidebar-btn {
@@ -223,6 +225,17 @@ nav a {
     background-color: rgba(255, 0, 0, 0.2);
     color: #ff5555;
 }
+
+.sidebar-footer {
+    flex-shrink: 0;
+    padding: 40px;
+    text-align: center;
+    background:url('web/logo.png') no-repeat center center;
+    background-size: 200%;
+    border-radius: 10px;
+    border-top: 1px solid var(--primary);
+  }
+  
 
 .ws-status.connected {
    
@@ -436,24 +449,21 @@ footer {
 /* Кнопка "Наверх" */
 #back-to-top {
     position: fixed;
-    bottom: 20px;
+    bottom: 50px;
     right: 20px;
-    background: var(--secondary);
+    background: transparent;
     color: var(--text);
     padding: 10px 15px;
-    border: none;
+    border: var(--primary);
     border-radius: 5px;
     cursor: pointer;
     display: none;
     z-index: 100;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 #back-to-top:hover {
-    background: linear-gradient(40deg, var(--primary), var(--secondary));
-
-    color: black;
-    text-shadow: 0 0 3px #ffffff, 0 0 6px #ffffff, 0 0 9px #ffffff;
+    color: var(--primary);
+    text-shadow: 0 0 3px #000000, 0 0 6px #000000, 0 0 9px #000000;
 }
 
 body,
