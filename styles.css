@@ -1,0 +1,562 @@
+
+* {
+    box-sizing: border-box;
+    }
+
+:root {
+    /* Обновлённая цветовая схема */
+    --primary: #00ff00;   
+    /* Основной цвет (зелёный) */
+    --secondary: #1f1f1f;
+    /* Тёмный фон/оттенок */
+    --background: #1f1f1f;
+    /* Фон */
+    --surface: #2c2c2c;
+    /* Поверхность (слегка светлее фона) */
+    --text: #d64306;
+    /* Основной цвет текста (светлый) */
+}
+
+
+/* Липкий подвал */
+html
+ {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-size: clamp(10px, 1vw + 0.5em, 15px);
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: url('web/bodybackground.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    z-index: 0;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    -webkit-user-select: none;
+    /* для Safari и Chrome */
+    -moz-user-select: none;
+    /* для Firefox */
+    -ms-user-select: none;
+    /* для Internet Explorer/Edge */
+    user-select: none;
+    /* стандартное свойство */
+}
+
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    flex: 1;
+
+}
+
+nav {
+    background: url('./web/header-bg.jpg');
+    background-size: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 20px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 15px; /* добавим промежуток между элементами */
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
+.nav-title {
+    font-size: 1.2em;
+    color: var(--text);
+    flex-grow: 1; /* чтобы отодвинуть ссылку "Наверх" вправо */
+}
+
+nav a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Чтобы кнопка меню слева встала красиво */
+#sidebar-toggle {
+    background: url('web/icon.ico') no-repeat center center;
+    background-size: contain;
+    width: 40px; /* Set the width of the icon */
+    height: 40px; /* Set the height of the icon */
+    border: var(--text) 1px solid;
+    border-radius: 42%; /* Круглая кнопка */
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#sidebar-toggle:hover {
+    transform: scale(1.1); 
+    box-shadow: var(--primary) 0 0 10px;
+    border: var(--primary) 1px solid;
+    border-radius: 15px;
+    
+}
+
+#sidebar-toggle:active {
+    transform: scale(0.96);
+    box-shadow: var(--text) 0 0 15px;
+    border: var(--text) 1px solid;
+    border-radius: 15px;
+}
+
+
+.sidebar-header {
+    padding: 20px 15px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text);
+    font-family: 'Roboto', sans-serif;
+    background:url('web/header-bg.jpg') no-repeat 30% center;
+    background-size: 300% 500%;
+    background-color:var(--primary);
+    background-blend-mode: multiply;
+}
+
+
+#sidebar {
+    position: fixed;
+    top: 60px; /* ⚠️ высота панели навигации */
+    left: 0;
+    height: calc(100% - 60px); /* ← чтобы не залазил под nav */
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 998;
+    background: repeating-linear-gradient(
+        45deg,
+        #111 0px,
+        #111 10px,
+        #1b1b1b 10px,
+        #1b1b1b 20px
+    ),
+    repeating-linear-gradient(
+        45deg,
+        #0f0f0f 0px,
+        #0f0f0f 10px,
+        #1a1a1a 10px,
+        #1a1a1a 20px
+    ),
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05), transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.03), transparent 50%);
+    
+    
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+    z-index: 998;
+   
+    
+}
+
+#sidebar.active {
+    transform: translateX(0);
+    border-right: 2px solid var(--primary);
+    box-shadow: 5px 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.sidebar-content {
+    position: relative;
+    top: 90px;
+    padding: 30px 15px; /* отступ сверху — оттолкнуться от nav */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    justify-content: flex-start;
+    flex-grow: 1;      /* ✅ Растягивается вниз */
+    margin-top: 60px;
+}
+
+
+.sidebar-btn {
+    background: url('web/bodybackground.jpg') no-repeat 20% center;
+    background-size: 500% 500%;
+    width: 80%;
+    color: var(--text);
+    padding: 14px 20px;
+    font-size: 1.1em;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+    margin: 10px auto;
+    display: block;
+    transition: all 0.15s ease;
+}
+
+.sidebar-btn:active {
+    
+    box-shadow: inset 0 0 20px black, 0 0 10px var(--primary);
+    transform: scale(0.96);
+}
+
+
+
+.sidebar-btn:hover {
+    background-color:var(--primary); /* зелёная дымка */
+    background-blend-mode: multiply;
+    
+}
+
+.ws-status {
+    margin: 20px 15px;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 6px;
+    width: auto;
+    transition: background 0.3s, color 0.3s;
+    background-color: rgba(255, 0, 0, 0.2);
+    color: #ff5555;
+}
+
+.ws-status.connected {
+   
+    color: var(--primary);
+    
+    text-shadow: var(--primary);
+}
+
+.ws-status.disconnected {
+    
+    color:var(--text);
+    
+    text-shadow: var(--text);
+}
+
+/* Preloader */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    border: 6px solid rgba(255, 255, 255, 0.1);
+    border-top: 6px solid var(--primary);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+
+/* Аккордеон */
+.accordion-section {
+    margin-bottom: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: 0 0 10px var(--primary);
+    transition: all 1s ease-in-out;
+    animation: glow 10s infinite;
+ 
+}
+
+
+
+.accordion-header {
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease-out;
+    background: url('web/bodybackground.jpg')no-repeat center center;
+    background-size: cover;
+
+}
+
+.accordion-header:hover {
+    background:
+        linear-gradient(135deg, rgba(0, 255, 0, 0.3), transparent),
+        url('web/bodybackground.jpg');
+        background-color:var(--primary); 
+        background-blend-mode: multiply;
+        background-position: center;
+    background-size: cover;
+   
+}
+
+
+.accordion-content {
+    max-height: 0;
+    opacity: 0;
+    transform: scaleY(0);
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out, transform 0.5s ease-out, padding 0.5s ease-out;
+    position: relative;
+    background: url('web/header-bg.jpg')no-repeat center center;
+    background-size: cover;
+    
+}
+
+.accordion-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    opacity: 0.5;
+    z-index: -1;
+}
+
+.accordion-header.active+.accordion-content {
+    max-height: 1000px;
+    opacity: 1;
+    transform: scaleY(1);
+    padding: 20px;
+
+}
+
+
+ul {
+    list-style: none;
+    padding: 20px;
+    
+}
+
+
+li {
+    margin: 10px 0 20px 0;
+    padding: 20px;
+    background: rgba(72, 22, 2, 0.5);
+    border-left: 4px solid var(--primary);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    position: relative;
+    color: white;
+    
+}
+
+li:hover {
+    transform: translateX(10px);
+    background: rgba(72, 22, 2, 0.7);
+    box-shadow: 0 0 15px rgba(214, 66, 6, 0.2);
+    text-shadow: rgba(0, 0, 0, 0.8);
+}
+
+h1
+{
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    color: var(--primary);
+    text-align: center;
+    font-size: 2.0em;
+    border: black solid rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 20px black transparent;
+}
+
+h2 {
+    margin: 0;
+}
+
+/* Видео-руководство */
+.video-section {
+    margin: 90px 0;
+    text-align: center;
+}
+
+img {
+    animation: glow 10s infinite;
+    width: 100%;
+    border: var(--secondary) solid 1px;
+    border-radius: 10px; /* Закругление углов */
+}
+
+iframe {
+    animation: glow 10s infinite;
+    width: 50%;
+    max-width: 100%; /* Prevents iframe from exceeding container width */
+    border: var(--secondary) solid 1px;
+    border-radius: 10px; /* Закругление углов */
+
+}
+
+/* Маленькое видео для списков */
+.small-video {
+    margin-top: 15px;
+    text-align: center;
+    }
+
+.small-video iframe {
+    width: 320px;
+    height: 180px;
+    border: none;
+    border-radius: 5px;
+}
+
+/* Подвал */
+footer {
+    background: url('web/header-bg.jpg') no-repeat center 65%;
+    background-size: cover;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: end;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Кнопка "Наверх" */
+#back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--secondary);
+    color: var(--text);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+#back-to-top:hover {
+    background: linear-gradient(40deg, var(--primary), var(--secondary));
+
+    color: black;
+    text-shadow: 0 0 3px #ffffff, 0 0 6px #ffffff, 0 0 9px #ffffff;
+}
+
+body,
+h1,
+h2,
+p,
+span,
+li
+
+{
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    }
+
+code {
+    color: var(--primary);
+    font-size: 1.2em;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    
+}
+
+p {
+    color:white;
+    margin-right: 10%;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 1s ease;
+}
+
+a:hover {
+    color:white;
+    text-shadow: 1px 1px 5px var(--primary);
+    
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+
+    nav a {
+       
+        white-space: nowrap; /* Запрещает перенос текста */
+    }
+
+    iframe {
+        
+        width: 100%;
+        
+    
+    }
+
+    footer {
+        align-items: center;
+
+    }
+
+    ul {
+        padding: 10px;
+    }
+    li {
+
+        padding: 10px;
+    }
+    .accordion-header {
+        padding: 15px;
+    }
+
+    .accordion-content {
+        padding: 0 10px;
+    }
+
+    .accordion-header.active+.accordion-content {
+        padding: 10px;
+    }
+
+    .video-section {
+        margin: 50px 0;
+        text-align: center;
+    }
+    
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 10px var(--primary);
+    }
+
+    25% {
+        box-shadow: 0 0 20px black;
+    }
+
+    50% {
+        box-shadow: 0 0 10px silver;
+    }
+
+    75% {
+        box-shadow: 0 0 20px black;
+    }
+
+    100% {
+        box-shadow: 0 0 10px var(--primary);
+    }
+}
+
+
