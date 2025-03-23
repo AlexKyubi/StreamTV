@@ -1,4 +1,17 @@
- // Удаление preloader после загрузки страницы
+(function tryRedirectToLocal() {
+    const localURL = "http://192.168.1.200:4040";  // Панель управления на локальном сервере
+
+    fetch(localURL, { mode: "no-cors" })
+        .then(() => {
+            window.location.href = localURL;
+        })
+        .catch(() => {
+            console.log("Локальный UI недоступен — остаёмся на GitHub Pages");
+        });
+})();
+
+
+// Удаление preloader после загрузки страницы
  window.addEventListener('load', function () {
     var preloader = document.getElementById('preloader');
     preloader.style.display = 'none';
@@ -133,8 +146,9 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 
 
-const LOCAL_WS_IP = "192.168.1.200";   
 const WS_PORT = 8765;
+const WS_HOST = location.hostname;
+
 let ws;
 
 function sendControl(command) {
@@ -156,7 +170,7 @@ function connectWebSocket() {
         return;
     }
 
-    const wsURL = `ws://${LOCAL_WS_IP}:${WS_PORT}`;
+    const wsURL = `ws://${WS_HOST}:${WS_PORT}`;
     ws = new WebSocket(wsURL);
 
     ws.onopen = () => {
