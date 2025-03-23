@@ -1,5 +1,5 @@
 (function tryRedirectToLocal() {
-    const localURL = "http://192.168.1.122:4040";  // Панель управления на локальном сервере
+    const localURL = "http://192.168.0.122:4040";  // Панель управления на локальном сервере
 
     fetch(localURL, { mode: "no-cors" })
         .then(() => {
