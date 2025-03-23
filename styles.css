@@ -32,7 +32,7 @@ body {
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background: url('web/bodybackground.jpg') no-repeat center center fixed;
+    background: #000 url('web/bodybackground.jpg') no-repeat center center fixed;
     background-size: cover;
     position: relative;
     z-index: 0;
@@ -40,14 +40,14 @@ body {
     display: flex;
     flex-direction: column;
     -webkit-user-select: none;
-    /* для Safari и Chrome */
     -moz-user-select: none;
-    /* для Firefox */
     -ms-user-select: none;
-    /* для Internet Explorer/Edge */
     user-select: none;
-    /* стандартное свойство */
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
 }
+
 
 
 .container {
