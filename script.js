@@ -1,15 +1,3 @@
-(function tryRedirectToLocal() {
-    const localURL = "http://192.168.0.122:4040";  // Панель управления на локальном сервере
-
-    fetch(localURL, { mode: "no-cors" })
-        .then(() => {
-            window.location.href = localURL;
-        })
-        .catch(() => {
-            console.log("Локальный UI недоступен — остаёмся на GitHub Pages");
-        });
-})();
-
 
 // Удаление preloader после загрузки страницы
  window.addEventListener('load', function () {
@@ -91,6 +79,20 @@ function toggleFullscreen(img) {
         document.exitFullscreen();
     }
 }
+
+document.getElementById("tryLocalBtn").addEventListener("click", () => {
+    const localURL = "http://192.168.0.122:4040";
+
+    fetch(localURL, { mode: "no-cors" })
+        .then(() => {
+            console.log("✅ Локальный сервер доступен. Переходим...");
+            window.location.href = localURL;
+        })
+        .catch(() => {
+            console.warn("⚠️ Локальный сервер недоступен. Переход отменён.");
+        });
+});
+
 
 
 
