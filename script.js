@@ -71,6 +71,15 @@ headers.forEach(function (header) {
 
 
 
+function toggleFullscreen(img) {
+    if (!document.fullscreenElement) {
+        img.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+
 
 // Кнопка "Наверх"
 var backToTop = document.getElementById('back-to-top');
