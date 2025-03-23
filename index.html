@@ -32,34 +32,28 @@
     </nav>
 
 
-
     <!-- Боковая слайдерная панель -->
     <div id="sidebar">
-
         <div class="sidebar-header">Панель удалённого управления</div>
-        <div> <button class="sidebar-btn" onclick="sendControl('sync')">
-                Синхронизировать поток
-            </button>
 
-            <button class="sidebar-btn" onclick="sendControl('android')">
-                Запустить Android
-            </button>
-
-            <button class="sidebar-btn" onclick="sendControl('webos')">
-                Запустить WebOS
-            </button>
-
-            <button class="sidebar-btn" onclick="sendControl('tizen')">
-                Запустить Tizen
-            </button>
-
+        <div class="sidebar-content">
+            <button class="sidebar-btn" onclick="sendControl('sync')">Синхронизировать поток</button>
+            <button class="sidebar-btn" onclick="sendControl('android')">Запустить Android</button>
+            <button class="sidebar-btn" onclick="sendControl('webos')">Запустить WebOS</button>
+            <button class="sidebar-btn" onclick="sendControl('tizen')">Запустить Tizen</button>
         </div>
         <div id="ws-status" class="ws-status disconnected">🔌 Нет подключения</div>
+        <div class="sidebar-footer">
 
-
-
-
+        </div>
     </div>
+
+
+
+
+
+
+
 
     <div class="container">
         <!-- Видео-руководство -->
@@ -70,7 +64,7 @@
 
         </div>
         <div>
-            <h1>StreamTV: Инструкция по настройке</h1>
+            <h1>StreamTV:<br>Инструкция по настройке</h1>
         </div>
 
         <!-- Аккордеон с разделами -->
@@ -347,7 +341,7 @@
             <div class="accordion-section">
 
                 <div class="accordion-header" title="Проверка">
-                    <h2>Инструкция по обработке видео</h2>
+                    <h2>Обновление видео</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
 
@@ -463,9 +457,13 @@
         </div>
     </div>
 
+
+
+
     <footer>
         <p>StreamTV &copy; 2025</p>
     </footer>
+
 
     <!-- Кнопка "Наверх" -->
     <button id="back-to-top" title="Наверх">
