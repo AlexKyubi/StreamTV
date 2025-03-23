@@ -133,7 +133,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 
 
-const SERVER_IP = "192.168.1.123";   // IP сервера
+const SERVER_IP = "192.168.1.200";   
 const WS_PORT = 8765;
 let ws;
 
