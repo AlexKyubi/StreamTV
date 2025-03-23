@@ -80,22 +80,6 @@ function toggleFullscreen(img) {
     }
 }
 
-document.getElementById("tryLocalBtn").addEventListener("click", () => {
-    const localURL = "http://192.168.0.122:4040";
-
-    fetch(localURL, { mode: "no-cors" })
-        .then(() => {
-            console.log("✅ Локальный сервер доступен. Переходим...");
-            window.location.href = localURL;
-        })
-        .catch(() => {
-            console.warn("⚠️ Локальный сервер недоступен. Переход отменён.");
-        });
-});
-
-
-
-
 // Кнопка "Наверх"
 var backToTop = document.getElementById('back-to-top');
 window.addEventListener('scroll', function () {
