@@ -80,18 +80,6 @@ function toggleFullscreen(img) {
     }
 }
 
-// Кнопка "Наверх"
-var backToTop = document.getElementById('back-to-top');
-window.addEventListener('scroll', function () {
-    if (window.pageYOffset > 300) {
-        backToTop.style.display = 'block';
-    } else {
-        backToTop.style.display = 'none';
-    }
-});
-backToTop.addEventListener('click', function () {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
 
 // Хранение всех YouTube плееров
 var players = [];
@@ -168,6 +156,10 @@ function connectWebSocket() {
         try {
             const data = JSON.parse(event.data);
             console.log("📨 Получено сообщение от сервера:", data);
+            if (data.response) {
+                addLogEntry(data.response);
+            }
+
         } catch (e) {
             console.warn("⚠️ Ошибка разбора WebSocket-сообщения:", e);
         }
@@ -184,12 +176,29 @@ function connectWebSocket() {
     };
 }
 
+function addLogEntry(message) {
+    const logContainer = document.getElementById("command-log");
+    if (!logContainer) return;
+
+    const entry = document.createElement("div");
+    entry.textContent = ">_ " + message;
+    logContainer.appendChild(entry);
+
+    // Прокрутка вниз
+    logContainer.scrollTop = logContainer.scrollHeight;
+
+    // Очистка через 10 сообщений (опционально)
+    if (logContainer.children.length > 10) {
+        logContainer.removeChild(logContainer.firstChild);
+    }
+}
+
 
 window.addEventListener("load", () => {
     connectWebSocket();
 
     const buttons = document.querySelectorAll(".sidebar-btn");
-    const commands = ["sync", "android", "webos", "tizen"];
+    const commands = ["sync", "reload", "android", "webos", "tizen"];
     buttons.forEach((btn, index) => {
         btn.addEventListener("click", () => {
             if (commands[index]) {
@@ -206,11 +215,11 @@ function updateStatus(connected) {
     if (!statusEl) return;
 
     if (connected) {
-        statusEl.textContent = "✅ Подключено к серверу";
+        statusEl.textContent = "🌐 Подключено к серверу";
         statusEl.classList.remove("disconnected");
         statusEl.classList.add("connected");
     } else {
-        statusEl.textContent = "❌ Нет подключения к серверу";
+        statusEl.textContent = "📡 Нет подключения к серверу";
         statusEl.classList.remove("connected");
         statusEl.classList.add("disconnected");
     }
