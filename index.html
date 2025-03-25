@@ -37,14 +37,19 @@
         <div class="sidebar-header">Панель удалённого управления</div>
 
         <div class="sidebar-content">
-            <button class="sidebar-btn" onclick="sendControl('sync')">Синхронизировать поток</button>
-            <button class="sidebar-btn" onclick="sendControl('android')">Запустить Android</button>
-            <button class="sidebar-btn" onclick="sendControl('webos')">Запустить WebOS</button>
-            <button class="sidebar-btn" onclick="sendControl('tizen')">Запустить Tizen</button>
-            <a href="http://192.168.1.200:4040">Подключится к серверу</a>
+            <button class="sidebar-btn">Синхронизировать</button>
+            <button class="sidebar-btn">Обновить</button>
+            <button class="sidebar-btn">Запустить Android</button>
+            <button class="sidebar-btn">Запустить WebOS</button>
+            <button class="sidebar-btn">Запустить Tizen</button>
+            <a href="http://192.168.1.200:4040">Подключиться к серверу</a>
 
         </div>
-        <div id="ws-status" class="ws-status disconnected">🔌 Нет подключения</div>
+        <div id="ws-status" class="ws-status disconnected">📡 Нет подключения</div>
+        <div id="command-log" class="command-log">
+        </div>
+
+
         <div class="sidebar-footer">
 
         </div>
@@ -467,10 +472,7 @@
     </footer>
 
 
-    <!-- Кнопка "Наверх" -->
-    <button id="back-to-top" title="Наверх">
-        <i class="fas fa-arrow-up"></i> Наверх
-    </button>
+
 
     <script src="script.js">
     </script>
