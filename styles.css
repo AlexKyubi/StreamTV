@@ -1,5 +1,10 @@
+
 * {
     box-sizing: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     }
 
 :root {
@@ -38,10 +43,7 @@ body {
     color: var(--text);
     display: flex;
     flex-direction: column;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    
     transform: translateZ(0);
     will-change: transform;
     backface-visibility: hidden;
@@ -137,7 +139,6 @@ nav a {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow: hidden; /* важно */
     z-index: 998;
     background: repeating-linear-gradient(
         45deg,
@@ -160,9 +161,15 @@ nav a {
     transform: translateX(-100%);
     transition: transform 0.4s ease;
     z-index: 998;
-   
-    
+    overflow: auto;
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE/Edge */
 }
+
+#sidebar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
 
 #sidebar.active {
     transform: translateX(0);
@@ -179,6 +186,13 @@ nav a {
     flex-direction: column;
     gap: 18px;
     justify-content: flex-start;
+    overflow: auto;
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE/Edge */
+}
+
+.sidebar-content::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
 
@@ -187,11 +201,11 @@ nav a {
 .sidebar-btn {
     background: url('web/bodybackground.jpg') no-repeat 20% center;
     background-size: 500% 500%;
-    width: 80%;
     color: var(--text);
-    padding: 14px 20px;
-    font-size: 1.1em;
-    border-radius: 10px;
+    font-size: 0.9em; /* уменьшен шрифт */
+    padding: 10px 16px; /* немного компактнее */
+    width: 90%; /* можно увеличить ширину для баланса */
+    border-radius: 8px; /* чуть мягче */
     cursor: pointer;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
     margin: 10px auto;
@@ -224,6 +238,43 @@ nav a {
     background-color: rgba(255, 0, 0, 0.2);
     color: #ff5555;
 }
+
+.command-log {
+    background-color: #000; /* классический чёрный фон */
+    color: #00ff00; /* ярко-зелёный текст */
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid #00ff00;
+    border-radius: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap; /* перенос строк */
+    line-height: 1.4;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE/Edge */
+}
+
+.command-log::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+.command-log div {
+    margin-bottom: 6px;
+}
+
+.command-log::after {
+    content: "_";
+    animation: blink 1s step-start infinite;
+    margin-left: 5px;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
 
 .sidebar-footer {
     flex-shrink: 0;
@@ -445,25 +496,6 @@ footer {
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
 }
 
-/* Кнопка "Наверх" */
-#back-to-top {
-    position: fixed;
-    bottom: 50px;
-    right: 20px;
-    background: transparent;
-    color: var(--text);
-    padding: 10px 15px;
-    border: var(--primary);
-    border-radius: 5px;
-    cursor: pointer;
-    display: none;
-    z-index: 100;
-}
-
-#back-to-top:hover {
-    color: var(--primary);
-    text-shadow: 0 0 3px #000000, 0 0 6px #000000, 0 0 9px #000000;
-}
 
 body,
 h1,
@@ -568,3 +600,4 @@ a:hover {
         box-shadow: 0 0 10px var(--primary);
     }
 }
+
