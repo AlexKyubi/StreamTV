@@ -1,20 +1,66 @@
 
 // Удаление preloader после загрузки страницы
- window.addEventListener('load', function () {
+window.addEventListener('load', function () {
     var preloader = document.getElementById('preloader');
     preloader.style.display = 'none';
 });
 
 
+
+
+//
+var headers = document.querySelectorAll('.accordion-header');
+
+// Хранение всех YouTube плееров
+var players = [];
+
+
+// Подключение YouTube API
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+
+// Подключение к WebSocket
+const WS_PORT = 8765;
+const WS_HOST = location.hostname;
+// WebSocket соединение
+let ws;
+
 // Получаем элементы кнопки-триггера и боковой панели
 var sidebarToggle = document.getElementById('sidebar-toggle');
 var sidebar = document.getElementById('sidebar');
+// Для обработки свайпов на мобильных устройствах
+let touchStartX = 0;
+let touchEndX = 0;
 
-// Обработчик клика по кнопке-триггеру
-sidebarToggle.addEventListener('click', function() {
-  sidebar.classList.toggle('active');
+// Открытие/закрытие боковой панели по кнопке
+sidebarToggle.addEventListener('click', function () {
+    sidebar.classList.toggle('active');
 });
-// Скрытие боковой панели при клике вне её области
+
+// Жесты для мобильных устройств
+document.addEventListener('touchstart', function (event) {
+    touchStartX = event.changedTouches[0].screenX;
+}, { passive: true });
+
+document.addEventListener('touchend', function (event) {
+    touchEndX = event.changedTouches[0].screenX;
+    handleSwipe();
+}, { passive: true });
+
+function handleSwipe() {
+    if (touchEndX - touchStartX > 50) {
+        // Свайп вправо - открываем
+        sidebar.classList.add('active');
+    } else if (touchStartX - touchEndX > 50) {
+        // Свайп влево - закрываем
+        sidebar.classList.remove('active');
+    }
+}
+
+// Закрытие панели при клике вне её области
 document.addEventListener('click', function (event) {
     const isClickInsideSidebar = sidebar.contains(event.target);
     const isClickOnToggle = sidebarToggle.contains(event.target);
@@ -25,7 +71,28 @@ document.addEventListener('click', function (event) {
 });
 
 
-var headers = document.querySelectorAll('.accordion-header');
+
+// Подключение к WebSocket при загрузке страницы
+window.addEventListener("load", () => {
+    connectWebSocket();
+
+    const buttons = document.querySelectorAll(".sidebar-btn");
+    const commands = ["sync", "reload", "android", "webos", "tizen"];
+    buttons.forEach((btn, index) => {
+        btn.addEventListener("click", () => {
+            if (commands[index]) {
+                sendControl(commands[index]);
+            } else {
+                console.log("Нет команды для кнопки", index);
+            }
+        });
+    });
+});
+
+
+
+
+// Обработчик клика по заголовкам аккордеона
 headers.forEach(function (header) {
     header.addEventListener('click', function () {
         var isActive = header.classList.contains('active');
@@ -71,7 +138,7 @@ headers.forEach(function (header) {
 });
 
 
-
+// Переключение полноэкранного режима img
 function toggleFullscreen(img) {
     if (!document.fullscreenElement) {
         img.requestFullscreen();
@@ -81,15 +148,13 @@ function toggleFullscreen(img) {
 }
 
 
-// Хранение всех YouTube плееров
-var players = [];
 
 // Инициализация YouTube API
 function onYouTubeIframeAPIReady() {
     var iframes = document.querySelectorAll("iframe");
     iframes.forEach(function (iframe, index) {
         if (iframe.src.includes("youtube.com/embed")) {
-            var videoId = iframe.src.split("/embed/")[1].split("?")[0]; 
+            var videoId = iframe.src.split("/embed/")[1].split("?")[0];
             players[index] = new YT.Player(iframe, {
                 events: {
                     'onStateChange': function (event) {
@@ -112,19 +177,11 @@ function stopAllVideosExcept(activeIndex) {
     });
 }
 
-// Подключение YouTube API
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 
 
-const WS_PORT = 8765;
-const WS_HOST = location.hostname;
 
-let ws;
-
+// Обрабртчик команд через WebSocket
 function sendControl(command) {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ command }));
@@ -133,7 +190,7 @@ function sendControl(command) {
         console.error("❌ WebSocket не подключён");
     }
 }
-
+// Подключение к WebSocket
 function connectWebSocket() {
     const isLocal = location.hostname.startsWith("192.168.") || location.hostname === "localhost";
 
@@ -149,7 +206,7 @@ function connectWebSocket() {
 
     ws.onopen = () => {
         console.log("🔌 WebSocket подключён");
-        updateStatus(true); 
+        updateStatus(true);
     };
 
     ws.onmessage = (event) => {
@@ -171,11 +228,11 @@ function connectWebSocket() {
 
     ws.onclose = () => {
         console.warn("⚠️ WebSocket отключён, переподключение через 5 сек...");
-        updateStatus(false); 
+        updateStatus(false);
         setTimeout(connectWebSocket, 5000);
     };
 }
-
+// Добавление сообщения в лог консоли для пользователя
 function addLogEntry(message) {
     const logContainer = document.getElementById("command-log");
     if (!logContainer) return;
@@ -193,23 +250,7 @@ function addLogEntry(message) {
     }
 }
 
-
-window.addEventListener("load", () => {
-    connectWebSocket();
-
-    const buttons = document.querySelectorAll(".sidebar-btn");
-    const commands = ["sync", "reload", "android", "webos", "tizen"];
-    buttons.forEach((btn, index) => {
-        btn.addEventListener("click", () => {
-            if (commands[index]) {
-                sendControl(commands[index]);
-            } else {
-                console.log("Нет команды для кнопки", index);
-            }
-        });
-    });
-});
-
+// Обновление статуса подключения к WebSocket
 function updateStatus(connected) {
     const statusEl = document.getElementById("ws-status");
     if (!statusEl) return;
