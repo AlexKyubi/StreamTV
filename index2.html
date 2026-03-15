@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>StreamTV | System notice</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+font-family:'Roboto',sans-serif;
+
+background:url('web/bodybackground.jpg') center/cover no-repeat fixed;
+
+color:white;
+
+min-height:100vh;
+
+display:flex;
+flex-direction:column;
+
+/* запрет выделения текста */
+
+user-select:none;
+-webkit-user-select:none;
+-moz-user-select:none;
+-ms-user-select:none;
+
+}
+
+/* SYSTEM NOTICE */
+
+.system-notice{
+
+font-family:"Courier New", monospace;
+
+font-size:20px;
+
+font-weight:bold;
+
+letter-spacing:3px;
+
+text-align:center;
+
+padding:12px;
+
+color:#00ff88;
+
+text-shadow:
+0 0 3px black,
+0 0 6px black,
+0 0 10px black,
+0 0 2px #00ff88;
+
+}
+
+/* Glow animation */
+
+@keyframes glow{
+
+0%{ box-shadow:0 0 10px #00ff00; }
+
+25%{ box-shadow:0 0 20px black; }
+
+50%{ box-shadow:0 0 10px silver; }
+
+75%{ box-shadow:0 0 20px black; }
+
+100%{ box-shadow:0 0 10px #00ff00; }
+
+}
+
+/* HEADER */
+
+header{
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+padding:40px 20px;
+
+}
+
+/* контейнер логотипа */
+
+.logo-container{
+
+background:rgba(0,0,0,0.65);
+
+border-radius:12px;
+
+animation:glow 10s infinite;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+overflow:hidden;
+
+}
+
+/* логотип */
+
+.logo-container img{
+
+display:block;
+
+width:100%;
+height:auto;
+
+}
+/* MAIN */
+
+main{
+
+flex:1;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+padding:40px;
+
+text-align:center;
+
+}
+
+.notice{
+
+max-width:750px;
+
+background:rgba(0,0,0,0.65);
+
+padding:40px;
+
+border-radius:12px;
+
+animation:glow 10s infinite;
+
+}
+
+.notice h1{
+
+font-size:28px;
+
+margin-bottom:25px;
+
+color:#00ff88;
+
+}
+
+.notice p{
+
+font-size:18px;
+
+line-height:1.6;
+
+margin-bottom:18px;
+
+}
+
+/* FOOTER */
+
+footer{
+
+background:url('web/header-bg.jpg') center/cover no-repeat;
+
+padding:18px;
+
+text-align:center;
+
+border-top:2px solid black;
+
+}
+
+footer a{
+
+color:#00ff88;
+
+font-weight:bold;
+
+text-decoration:none;
+
+}
+
+footer a:hover{
+
+text-decoration:underline;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="system-notice">
+STREAMTV SYSTEM NOTICE
+</div>
+
+<header>
+
+<div class="logo-container">
+<img src="web/Dynamic_Logo.gif" alt="StreamTV">
+</div>
+
+</header>
+
+<main>
+
+<div class="notice">
+
+<h1>Информация о распространении программного обеспечения</h1>
+
+<p>
+Распространение и поддержка программного обеспечения <strong>StreamTV</strong>
+через публичные ссылки больше не осуществляется.
+</p>
+
+<p>
+Актуальные версии программы предоставляются
+через внутренние каналы обслуживания и инженерную поддержку.
+</p>
+
+<p>
+Для получения программного обеспечения или консультации по установке
+рекомендуется обратиться к вашему инженеру
+или ответственному техническому специалисту.
+</p>
+
+</div>
+
+</main>
+
+<footer>
+
+Связь с разработчиком:
+<a href="mailto:ya@alexkyubi.ru">ya@alexkyubi.ru</a>
+
+</footer>
+
+</body>
+
+</html>
