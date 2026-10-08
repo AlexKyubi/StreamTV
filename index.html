@@ -7,9 +7,9 @@
         content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>StreamTV by AlexKyubi</title>
     <!-- Подключение Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <!-- Подключение Font Awesome для иконок (альтернативный URL) -->
-    <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <!-- Подключение иконки -->
     <link rel="icon" href="web/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="styles.css">
@@ -34,17 +34,36 @@
 
     <!-- Боковая слайдерная панель -->
     <div id="sidebar">
-        <div class="sidebar-header">Панель удалённого управления</div>
+        <div class="sidebar-header remote-head">
+            <img data-src="web/Dynamic_Logo.gif" alt="StreamTV" class="remote-logo">
+            <div>Панель удалённого управления</div>
+        </div>
 
         <div class="sidebar-content">
-            <button class="sidebar-btn">Синхронизировать</button>
-            <button class="sidebar-btn">Обновить</button>
-            <button class="sidebar-btn">Запустить Android</button>
-            <button class="sidebar-btn">Запустить WebOS</button>
-            <button class="sidebar-btn">Запустить Tizen</button>
-            <a href="http://192.168.1.200:4040" style="font-family: 'Courier New', Courier, monospace;">Консоль сервера
-                >_ </a>
-            <div id="ws-status" class="ws-status disconnected">📡 Нет подключения</div>
+            <div id="ws-status" class="ws-status disconnected">🔎 Поиск сервера…</div>
+            <div id="r-connect" class="r-connect" hidden>
+                <input id="r-host" type="text" inputmode="decimal" placeholder="192.168.1.200" aria-label="Адрес сервера">
+                <button class="sidebar-btn" id="r-retry">Найти сервер ещё раз</button>
+                <button class="sidebar-btn" id="r-open">Открыть пульт на сервере</button>
+            </div>
+            <div class="remote-state">
+                <div id="r-state">Подключение к программе…</div>
+                <div id="r-summary" class="r-small"></div>
+                <div id="r-trouble" class="r-trouble" hidden></div>
+            </div>
+
+            <div class="r-sync">
+                <span>Позиция</span>
+                <input id="r-mm" type="number" inputmode="numeric" min="0" max="59" value="0" aria-label="минуты">
+                <b>:</b>
+                <input id="r-ss" type="number" inputmode="numeric" min="0" max="59" value="0" aria-label="секунды">
+            </div>
+            <button class="sidebar-btn" data-cmd="sync">Синхронизировать</button>
+            <button class="sidebar-btn" data-cmd="reload">Перезапустить показ на ТВ</button>
+            <button class="sidebar-btn" data-cmd="wake_all">Включить все ТВ</button>
+            <button class="sidebar-btn" id="r-manage" data-cmd="manage">Приостановить управление ТВ</button>
+
+            <div id="r-tvs" class="r-tvs"></div>
         </div>
 
         <div id="command-log" class="command-log"></div>
@@ -53,14 +72,34 @@
         </div>
     </div>
 
+    <!-- Действия с одним ТВ -->
+    <div id="tv-sheet" class="tv-sheet" hidden>
+        <div class="tv-sheet-box">
+            <div id="tv-sheet-title" class="tv-sheet-title"></div>
+            <div id="tv-sheet-info" class="r-small"></div>
+            <button class="sidebar-btn" data-act="wake">Включить ТВ</button>
+            <button class="sidebar-btn" data-act="pause" id="act-pause">Пауза показа</button>
+            <button class="sidebar-btn" data-act="resume" id="act-resume">Возобновить показ</button>
+            <div class="r-modes">
+                <span>Способ показа:</span>
+                <button data-mode="auto">Авто</button>
+                <button data-mode="browser">Браузер</button>
+                <button data-mode="dlna">DLNA</button>
+                <button data-mode="cast">Cast</button>
+            </div>
+            <button class="sidebar-btn" data-act="pair">Запросить сопряжение</button>
+            <button class="sidebar-btn" data-act="cache">Очистить кэш роликов</button>
+            <button class="sidebar-btn" data-act="close">Закрыть</button>
+        </div>
+    </div>
+
 
     <div class="container">
-        <!-- Видео-руководство -->
+        <!-- Видео-руководство (загружается после открытия страницы) -->
         <div class="video-section">
-            <iframe width="560" height="290"
-                src="https://www.youtube.com/embed/9NJGVwxm7e0?autoplay=1&mute=1&loop=1&playlist=9NJGVwxm7e0&modestbranding=1&rel=0&enablejsapi=1"
+            <iframe width="560" height="290" loading="lazy"
+                data-src="https://www.youtube.com/embed/9NJGVwxm7e0?autoplay=1&mute=1&loop=1&playlist=9NJGVwxm7e0&modestbranding=1&rel=0"
                 allow="autoplay; encrypted-media" title="StreamTV demo" allowfullscreen></iframe>
-
         </div>
         <div>
             <h1>StreamTV:<br>Инструкция по настройке</h1>
@@ -77,424 +116,325 @@
                 </div>
                 <div class="accordion-content">
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/R67BMkr0yoM?loop=1&playlist=R67BMkr0yoM&modestbranding=1&rel=0&enablejsapi=1"
-                            title="Общая подготовка"></iframe>
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/R67BMkr0yoM?loop=1&playlist=R67BMkr0yoM&modestbranding=1&rel=0"
+                            title="Общая подготовка" allowfullscreen></iframe>
                     </div>
                     <div>
                         <ul>
                             <li title="Возможности StreamTV">
-                                <strong>StreamTV</strong> – инновационное решение для беспроводной трансляции видео на
-                                любые устройства! Наслаждайтесь быстрой обработкой видео, синхронным воспроизведением на
-                                телевизорах и смартфонах, удобным управлением трансляцией и автоматической оптимизацией
-                                памяти – всё для качественного и стабильного вещания.
+                                <strong>StreamTV</strong> – решение для показа рекламы на телевизорах по Wi-Fi.
+                                Программа сама включает телевизоры, запускает на них показ, следит за ним и
+                                восстанавливает при сбоях. Все экраны показывают ролики синхронно, а ролики хранятся в
+                                памяти телевизоров — сеть нагружается только при первом круге.
                             </li>
                             <li title="Выбор оборудования">
-                                Для беспроводной трансляции нужен роутер: <em>Archer C80</em> (до 60 телевизоров) или
-                                <em>Archer AX73</em> (свыше 60 телевизоров). Также потребуется компьютер с установленной
-                                программой StreamTV.
+                                Для трансляции нужен роутер: <em>Archer C80</em> (до 60 телевизоров) или
+                                <em>Archer AX73</em> (свыше 60 телевизоров) и компьютер с программой StreamTV.
                             </li>
                             <li title="Расположение роутера">
-                                Если роутер расположен далеко от клиентов, для сети 2G рекомендуется использовать
-                                репитер для
-                                повышения скорости и стабильности воспроизведения.
+                                Если роутер расположен далеко от телевизоров, поставьте репитер — это повысит скорость
+                                и стабильность показа. По возможности подключайте ТВ к сети 5 ГГц.
                             </li>
-                            <li title="Отключение защиты Windows">
-                                Перед установкой временно отключите защиту Windows Defender, чтобы избежать сбоев при
-                                установке и работе программы.
+                            <li title="Защита Windows">
+                                Если Windows Defender блокирует установку или работу программы, добавьте папку
+                                StreamTV в исключения и разрешите программе доступ к сети при первом запуске.
                             </li>
                             <li title="Скачивание и установка StreamTV">
-                                Скачайте программу по ссылке: <a
-                                    href="index2.html">StreamTV</a>. Запустите установочный
-                                файл и выберите удобную папку. Для корректной работы требуется минимум 1 ГБ свободного
+                                Скачайте программу по ссылке: <a href="index2.html">StreamTV</a>. Запустите
+                                установочный файл и выберите удобную папку. Для работы нужно минимум 2 ГБ свободного
                                 места.
                             </li>
                             <li title="Реклама на смартфонах">
                                 Для трансляции на смартфоны нужен отдельный компьютер с программой StreamTV.
-                                Не объединяйте трансляции для телевизоров и смартфонов в одной сети — это
-                                может вызвать сбои.
+                                Не объединяйте трансляции для телевизоров и смартфонов в одной сети.
+                            </li>
+                            <li title="Пульт с телефона">
+                                <strong>Пульт с телефона.</strong> Когда трансляция запущена, откройте на телефоне,
+                                подключённом к той же сети, адрес компьютера с портом 4040 (например
+                                <code>http://192.168.1.200:4040</code>) и нажмите кнопку меню слева вверху. Там
+                                состояние всех ТВ, синхронизация, перезапуск показа, включение ТВ и действия с каждым
+                                телевизором.
                             </li>
                             <li title="Распространённые ошибки: неверная последовательность действий">
-                                Запуск трансляции до завершения обработки видео может привести к ошибкам синхронизации и
-                                проблемам с воспроизведением.
+                                Запускайте трансляцию только после завершения загрузки или обработки видео.
                             </li>
                             <li title="Распространённые ошибки: неправильное оборудование и настройки сети">
-                                Использование неподходящего роутера или неверная настройка сети могут привести к
-                                перебоям в работе трансляции.
+                                Неподходящий роутер или неверная настройка сети приводят к перебоям в показе.
                             </li>
-                            <li title="Распространённые ошибки: недостаточно свободного места">
-                                Убедитесь, что на диске достаточно свободного места для установки программы и обработки
-                                видео – менее 1 ГБ может вызвать сбои.
-                            </li>
-                            <li title="Распространённые ошибки: неверные FTP настройки">
-                                Если вы загружаете видео через FTP, проверьте правильность ввода учетных данных и
-                                настройки подключения – ошибки здесь приведут к неудачной загрузке файлов.
+                            <li title="Распространённые ошибки: неверные данные для входа">
+                                При загрузке роликов с сервера проверьте логин и пароль — с неверными данными ролики
+                                не загрузятся.
                             </li>
                             <li title="Распространённые ошибки: игнорирование предупреждений">
-                                Не пренебрегайте сообщениями и предупреждениями в программе – они помогут быстро выявить
-                                и устранить проблемы.
+                                Следите за сообщениями программы и столбцом «Внимание» в окне «Телевизоры» — они
+                                подскажут, что нужно сделать.
                             </li>
                         </ul>
-
                     </div>
-
                 </div>
             </div>
 
-            <!-- Настройка сервера -->
+            <!-- Настройка роутера -->
             <div class="accordion-section">
-                <div class="accordion-header" title="Общая подготовка">
+                <div class="accordion-header" title="Настройка роутера">
                     <h2>Настройка роутера</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="accordion-content">
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/s9kJC-V9SAk?loop=1&playlist=s9kJC-V9SAk&modestbranding=1&rel=0&enablejsapi=1"
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/s9kJC-V9SAk?loop=1&playlist=s9kJC-V9SAk&modestbranding=1&rel=0"
                             title="Настройка роутера" allowfullscreen></iframe>
                     </div>
-
                     <div>
                         <ul>
                             <li title="Подключение оборудования">
                                 Подключите роутер Archer C80 (или AX73) к корпоративному роутеру Sulpak через
-                                Ethernet-кабель (см. схему).
-                                Затем подключите управляющий компьютер к Archer C80/AX73 через LAN-кабель (см. схему
-                                demoTV).
+                                Ethernet-кабель. Управляющий компьютер подключите к Archer C80/AX73 LAN-кабелем
+                                (см. схему).
                             </li>
-
                             <li>
                                 <figure>
                                     <img src="web/scheme.png" alt="Схема подключения StreamTV" id="preview"
-                                        ondblclick="toggleFullscreen(this)">
-                                    <figcaption>Для просмотра кликни 2 раза по картинке</figcaption>
+                                        loading="lazy" ondblclick="toggleFullscreen(this)">
+                                    <figcaption>Для просмотра нажмите 2 раза по картинке</figcaption>
                                 </figure>
-
                             </li>
-
                             <li title="Вход в интерфейс роутера">
                                 <strong>Первичная настройка Archer C80/AX73:</strong><br>
                                 Включите роутер и откройте в браузере <a href="http://tplinkwifi.net"
-                                    target="_blank">tplinkwifi.net</a> или
-                                <a target="_blank">192.168.1.1</a>
-                                (или адрес, указанный в инструкции).
+                                    target="_blank">tplinkwifi.net</a> или <a href="http://192.168.1.1"
+                                    target="_blank">192.168.1.1</a>. Придумайте логин и пароль для доступа к роутеру.
                             </li>
-
-                            <li title="Придумайте логин и пароль">
-                                Придумайте логин и пароль для доступа к роутеру. <br>
-                            </li>
-
-                            <li title="Настройка IP-адресов (DHCP)">
+                            <li title="Постоянный адрес компьютера (DHCP)">
                                 Перейдите: <em>Расширенная</em> ➔ <em>Сеть</em> ➔
                                 <a href="http://192.168.1.1/#dhcpServerAdv" target="_blank">DHCP-сервер</a>.<br>
                                 Установите пул адресов IP: <code>192.168.1.2</code> — <code>192.168.1.249</code>.<br>
-                                Ниже зарезервируйте IP для управляющего ПК:<br>
-                                ➔ <em>+ Добавить</em> ➔ выбрать устройство ➔ указать IP <code>192.168.1.200</code>➔
-                                сохранить.
+                                Ниже зарезервируйте IP для управляющего компьютера:
+                                <em>+ Добавить</em> ➔ выбрать устройство ➔ указать IP <code>192.168.1.200</code> ➔
+                                сохранить.<br>
+                                <strong>Это обязательно:</strong> телевизоры хранят ролики, привязанные к адресу
+                                компьютера. Если адрес сменится, они заново скачают все ролики.
                             </li>
-
                             <li title="Настройка Wi-Fi">
-                                Отключите <a href="http://192.168.0.1/#hostNwAdv" target="_blank">Smart Connect</a>:<br>
+                                Отключите <a href="http://192.168.1.1/#hostNwAdv" target="_blank">Smart Connect</a>:
                                 Меню ➔ Беспроводной режим ➔ Настройка ➔ Smart Connect: выкл.<br>
-                                В 5 ГГц и 2.4ГГц укажите имя и пароль сети (например: DemoTV / 11111111) ➔ сохранить.
-                            </li>
-
-                            <li title="Завершение настройки">
-                                Сохраните изменения. При необходимости перезагрузите роутер.
+                                Для 5 ГГц и 2,4 ГГц укажите имя и пароль сети (например: DemoTV / 11111111) ➔
+                                сохранить. При необходимости перезагрузите роутер.
                             </li>
                         </ul>
                     </div>
-
                 </div>
             </div>
 
-
             <!-- Настройка WebOS (LG) -->
             <div class="accordion-section">
-
                 <div class="accordion-header" title="Настройка WebOS">
                     <h2>Настройка WebOS (LG)</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-
                 <div class="accordion-content">
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/1_oVTaaR4hM?loop=1&playlist=1_oVTaaR4hM&modestbranding=1&rel=0&enablejsapi=1"
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/1_oVTaaR4hM?loop=1&playlist=1_oVTaaR4hM&modestbranding=1&rel=0"
                             title="Настройка WebOS" allowfullscreen></iframe>
                     </div>
                     <div>
                         <ul>
                             <li title="Подключение к Wi-Fi">
-                                Откройте настройки ТВ, выберите раздел «Сеть» и подключитесь к Wi-Fi с именем
-                                <em>demoTV</em>.
+                                Откройте настройки ТВ, раздел «Сеть», и подключитесь к Wi-Fi <em>DemoTV</em>.
                             </li>
-
                             <li title="Обновление прошивки">
-                                Перейдите в Настройки → Поддержка → Обновление ПО и выполните обновление прошивки ТВ.
+                                Настройки → Поддержка → Обновление ПО: обновите прошивку ТВ.
                             </li>
-
                             <li title="Отключение автоотключения">
-                                Отключите функцию автоотключения ТВ. Настройка обычно находится в разделе «Общие» или
-                                «Поддержка».
+                                Отключите автоотключение ТВ (раздел «Общие» → «Система» / «Таймеры» или
+                                «Поддержка»).
                             </li>
-
-                            <li title="Включение управления по сети">
-                                Перейдите в Настройки → Поддержка → Управление по IP и включите управление по сети. <br>
-                                Для старых версий WebOS: Настройки → Общие → Устройства → Внешние устройства → Включение
-                                ТВ с мобильного устройства.
+                            <li title="Управление по сети">
+                                <strong>Обязательно разрешите управление по сети</strong> — без этого программа не
+                                сможет включать ТВ и запускать показ:<br>
+                                Настройки → Поддержка → Управление по IP → включите управление по сети.<br>
+                                Настройки → Общие → Устройства → Внешние устройства → включите «Включение ТВ с
+                                мобильного устройства» (на старых версиях WebOS: Настройки → Общие → Mobile TV On).
                             </li>
-
-                            <li title="Запуск браузера">
-                                На панели управления StreamTV или в разделе инструкций нажмите кнопку
-                                <code>WebOS</code>, чтобы запустить браузер. <br>
+                            <li title="Добавление ТВ в программу">
+                                В программе нажмите <code>Телевизоры</code> → <code>Найти телевизоры</code>, выделите
+                                ТВ и нажмите <code>Добавить выбранные</code>.
                             </li>
-                            <li>
-                                Если на тв ранее не использовался StreamTV, при первом запуске может появиться запрос на
-                                разрешение удалённого управления. <br>
-                                Подтвердите его с помощью пульта дистанционного управления.
+                            <li title="Подтверждение на ТВ">
+                                На экране ТВ появится запрос «Разрешить трансляцию» (Cast) или «Разрешить
+                                подключение» — нажмите «Да» с пульта. Больше ничего делать не нужно: показ
+                                запускается автоматически при каждом запуске трансляции.
                             </li>
                         </ul>
-
                     </div>
-
                 </div>
             </div>
 
             <!-- Настройка Tizen (Samsung) -->
             <div class="accordion-section">
-
                 <div class="accordion-header" title="Настройка Tizen">
                     <h2>Настройка Tizen (Samsung)</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-
                 <div class="accordion-content">
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/Jsam-eU5f-c?loop=1&playlist=Jsam-eU5f-c&modestbranding=1&rel=0&enablejsapi=1"
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/Jsam-eU5f-c?loop=1&playlist=Jsam-eU5f-c&modestbranding=1&rel=0"
                             title="Настройка Tizen" allowfullscreen></iframe>
                     </div>
                     <div>
                         <ul>
-
                             <li title="Подключение к Wi-Fi">
-                                В меню → Сеть подключитесь к Wi-Fi <em>demoTV</em>.
+                                Меню → Общие → Сеть: подключитесь к Wi-Fi <em>DemoTV</em>. ТВ нужен доступ в
+                                интернет.
                             </li>
-
-                            <li title="Активация управления по IP/Wi-Fi">
-                                В меню ТВ: Сеть → Дополнительные настройки → включите управление по IP/Wi-Fi.
+                            <li title="Отключение автоотключения">
+                                Меню → Общие → Экономия энергии (Экодизайн) → «Автовыключение»: Выкл.
                             </li>
-
-                            <li title="Регистрация Samsung-аккаунта">
-                                Для того что бы запустить браузер на Samsung, необходимо зарегистрировать аккаунт.
-                                Один аккаунт можно использовать на все ТВ<br>
-                                Для регистрации перейдите по ссылке:
-                                <a href="https://www.samsung.com/ru/account/"
-                                    target="_blank">https://www.samsung.com/ru/account/</a>
-                                и зарегистрируйтесь, используя почту HiTechnic. <br>
-                                <strong>Важно:</strong> Указывайте простой пароль, например: <code>Demostream!</code>
+                            <li title="Включение по сети">
+                                Меню → Общие → Сеть → Экспертные настройки → включите «Включение с мобильного
+                                устройства» — так программа сможет включать ТВ по сети.
                             </li>
-
-                            <li title="Авторизация в аккаунте Samsung">
-                                Запустите браузер — появится запрос на вход. Авторизуйтесь в аккаунте Samsung. <br>
-                                Отметьте галочку «Не выходить на этом устройстве».
+                            <li title="Добавление ТВ в программу">
+                                В программе нажмите <code>Телевизоры</code> → <code>Найти телевизоры</code>, выделите
+                                ТВ и нажмите <code>Добавить выбранные</code>.
                             </li>
-
-                            <li title="Установка домашней страницы">
-                                В браузере откройте «Настройки» → «Домашняя страница» → выберите «Пользовательская» и
-                                введите:
-                                <code>192.168.1.200:8080</code>. Затем перейдите в «Общие настройки».
+                            <li title="Подтверждение на ТВ">
+                                На экране ТВ появится запрос на подключение StreamTV — нажмите «Разрешить». Затем
+                                появится запрос на трансляцию (Cast) — тоже «Разрешить». Аккаунт Samsung и настройки
+                                браузера не нужны: показ запускается автоматически.
                             </li>
-
-                            <li title="Скрытие адресной строки">
-                                В общих настройках включите «Скрывать адресную строку» и отключите опцию
-                                «Продолжить просмотр с других устройств».
-                            </li>
-
-
                         </ul>
                     </div>
-
                 </div>
             </div>
 
             <!-- Настройка Android TV -->
             <div class="accordion-section">
-
                 <div class="accordion-header" title="Настройка Android TV">
                     <h2>Настройка Android TV</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-
                 <div class="accordion-content">
-
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/8Ukm178NoCI?loop=1&playlist=8Ukm178NoCI&modestbranding=1&rel=0&enablejsapi=1"
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/8Ukm178NoCI?loop=1&playlist=8Ukm178NoCI&modestbranding=1&rel=0"
                             title="Настройка Android" allowfullscreen></iframe>
                     </div>
                     <div>
                         <ul>
                             <li title="Базовая настройка">
-                                Включите ТВ и дождитесь загрузки операционной системы. <br>
-                                Пропустите первичную настройку Android TV.
+                                Включите ТВ, дождитесь загрузки и пропустите первичную настройку Android TV.
                             </li>
                             <li title="Подключение к Wi-Fi">
-                                Откройте настройки ТВ, выберите раздел «Сеть» и подключитесь к Wi-Fi с именем
-                                <em>demoTV</em>.
+                                Настройки → Сеть: подключитесь к Wi-Fi <em>DemoTV</em>.
                             </li>
-
-                            <li title="Установка браузера Haier">
-                                Для ТВ Haier: откройте Настройки ➔ Об устройстве ➔ нажмите несколько раз на «Номер
-                                сборки», пока не появится режим разработчика. <br>
-                                Далее: Настройки ➔ Для разработчиков ➔ включите <code>Отладку по USB</code> или
-                                <code>Wi-Fi ADB</code>.
+                            <li title="Отключение случайного MAC-адреса">
+                                В настройках сети <em>DemoTV</em> отключите случайный MAC-адрес:
+                                Конфиденциальность (MAC-адрес) → «Использовать MAC-адрес устройства». Иначе программа
+                                может не узнать ТВ после перезагрузки и не сможет включить его по сети.
                             </li>
-
-                            <li title="Установка браузера ARG">
-                                Для ТВ ARG (модели 7500 и старше): <br>
-                                На пульте нажмите комбинацию <code> (Menu➔1➔1➔4➔7)</code> ➔ В появившемся меню
-                                разработчика выберите.
-                                <code>Debug</code> ➔ установите параметр <code>ADB enabled: ON.</code>
-                                Модели ниже не требуют настройки. И доступны к управлению через сеть сразу после
-                                подключения к Wi-Fi.
+                            <li title="Отключение автоотключения">
+                                Настройки → Система (Энергосбережение) → отключите автовыключение и переход в режим
+                                ожидания.
                             </li>
-
-                            <li title="Автоматическая установка браузера">
-                                В панели управления StreamTV или в разделе инструкций нажмите кнопку
-                                <code>Android</code> для автоматической установки браузера на ТВ. <br>
+                            <li title="Отладка по сети: Haier и другие">
+                                Настройки ➔ Об устройстве ➔ нажмите 7 раз на «Номер сборки», пока не появится режим
+                                разработчика.<br>
+                                Настройки ➔ Для разработчиков ➔ включите <code>Отладку по USB</code> и
+                                <code>Отладку по сети (Wi-Fi ADB)</code>, если есть.
                             </li>
-                            <li>
-                                Если на тв ранее не использовался StreamTV, при первом запуске может появиться запрос на
-                                разрешение удалённого управления. <br>
-                                Подтвердите его с помощью пульта дистанционного управления. <br>
-                                А так же если брауазер не запустился с первого раза, то попробуйте запустить его ещё
-                                раз. С помощью панели управлениеия StreamTV. <code>Android</code>.
+                            <li title="Отладка по сети: ARG">
+                                ARG (модели 7500 и старше): на пульте нажмите <code>Menu ➔ 1 ➔ 1 ➔ 4 ➔ 7</code> ➔ в
+                                меню разработчика выберите <code>Debug</code> ➔ <code>ADB enabled: ON</code>.
+                                Младшим моделям ARG настройка не нужна.
+                            </li>
+                            <li title="Добавление ТВ в программу">
+                                В программе нажмите <code>Телевизоры</code> → <code>Найти телевизоры</code>, выделите
+                                ТВ и нажмите <code>Добавить выбранные</code>. Браузер программа установит сама.
+                            </li>
+                            <li title="Подтверждение на ТВ">
+                                На экране ТВ появится запрос «Разрешить отладку» — отметьте «Всегда разрешать с этого
+                                компьютера» и нажмите OK. Если отладку включить нельзя, ТВ будет показывать через
+                                Cast или DLNA — это происходит автоматически.
                             </li>
                         </ul>
-
                     </div>
-
                 </div>
             </div>
 
-
+            <!-- Обновление видео -->
             <div class="accordion-section">
-
-                <div class="accordion-header" title="Проверка">
+                <div class="accordion-header" title="Обновление видео">
                     <h2>Обновление видео</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-
                 <div class="accordion-content">
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/WpH3Ug7gykw?loop=1&playlist=WpH3Ug7gykw&modestbranding=1&rel=0&enablejsapi=1"
-                            title="Обработка видео" allowfullscreen>
-                        </iframe>
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/WpH3Ug7gykw?loop=1&playlist=WpH3Ug7gykw&modestbranding=1&rel=0"
+                            title="Обработка видео" allowfullscreen></iframe>
                     </div>
-
                     <div>
                         <ul>
-
-                            <li title="Подготовка папки с видео">
-                                Скачайте видео с FTP. Для этого нажмите кнопку <code>Скачать видео с FTP</code>.
+                            <li title="Остановка трансляции">
+                                Если трансляция идёт — нажмите <code>Остановить трансляцию</code>.
                             </li>
-
-                            <li title="Авторизация">
-                                Введите логин и пароль от учетной записи директора магазина. <br>
-                                Если вы уже авторизовались ранее, этот шаг будет пропущен.
+                            <li title="Загрузка роликов">
+                                Нажмите <code>Загрузить рекламный набор</code> и введите логин и пароль учётной записи
+                                директора магазина (если вы входили ранее, они подставятся сами). Выберите папку на
+                                сервере.<br>
+                                Готовый поток загрузится сразу — в окне программы появится «Поток загружен. Можно
+                                запускать трансляцию».<br>
+                                Обычные видео после загрузки обработайте кнопкой <code>Обработать видео</code>: задайте
+                                качество и запустите обработку. По завершении появится «Видео готово к трансляции».
                             </li>
-
-                            <li title="Обработка роликов">
-                                <p>
-                                    <strong>Выберите папку с видео</strong> — загрузка начнётся автоматически,
-                                    и вы увидите сообщение в терминале. После завершения скачивания появится
-                                    уведомление:
-                                    <code>✅ Полная обработка завершена! Видео готово к раздаче через HLS.</code>
-                                </p>
-                                <p>
-                                    Если вы хотите <strong>обработать и запустить свой ролик вручную</strong>,
-                                    нажмите кнопку <code>Обработать видео</code>. Откроется окно обработки,
-                                    где можно задать параметры качества. После настройки нажмите
-                                    <strong>«Запустить обработку»</strong>. По завершении также получите сообщение:
-                                    <code>✅ Полная обработка завершена! Видео готово к раздаче через HLS.</code>
-                                </p>
-                            </li>
-
-
                             <li title="Старт трансляции">
-                                Нажмите <code>Запустить стрим HLS</code>, чтобы начать трансляцию на телевизорах.
+                                Нажмите <code>Запустить трансляцию</code>. Телевизоры включатся и запустят показ сами,
+                                новые ролики заменят старые автоматически.
                             </li>
-
-                            <li title="Запуск браузеров на ТВ">
-                                На панели управления StreamTV нажмите кнопку <code>Android</code>, <code>WebOS</code>
-                                и <code>Tizen</code>, чтобы запустить браузер. <br>
-                                Если трансляция уже была запущена ранее, нажмите <code>Обновить поток HLS</code>.
+                            <li title="Если ТВ показывает старое">
+                                Нажмите <code>Перезапустить показ на ТВ</code>. Если отдельный ТВ всё равно показывает
+                                старые ролики — <code>Телевизоры</code> → правая кнопка по ТВ → «Очистить кэш роликов
+                                на ТВ».
                             </li>
-
-                            <li title="Проверка трансляции">
-                                Проверьте, что трансляция работает на всех подключённых устройствах.
-                            </li>
-
-                            <li title="Подтверждение на ТВ">
-                                Если на телевизоре ранее не использовался StreamTV, при первом запуске может появиться
-                                запрос на разрешение удалённого управления. <br>
-                                Подтвердите его с помощью пульта дистанционного управления.
-                            </li>
-
                         </ul>
                     </div>
-
-
                 </div>
             </div>
 
-            <!--Запуск в начале дня -->
+            <!-- Запуск в начале дня -->
             <div class="accordion-section">
-
-                <div class="accordion-header" title="Проверка">
+                <div class="accordion-header" title="Запуск в начале дня">
                     <h2>Запуск в начале дня</h2>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-
                 <div class="accordion-content">
-
                     <div class="small-video">
-                        <iframe
-                            src="https://www.youtube.com/embed/RHJsRI-Ratw?loop=1&playlist=RHJsRI-Ratw&modestbranding=1&rel=0&enablejsapi=1"
+                        <iframe loading="lazy"
+                            data-src="https://www.youtube.com/embed/RHJsRI-Ratw?loop=1&playlist=RHJsRI-Ratw&modestbranding=1&rel=0"
                             title="Запуск в начале дня" allowfullscreen></iframe>
                     </div>
                     <div>
                         <ul>
-
-
                             <li title="Все устройства в одной сети">
-                                Убедитесь, что ранее вы настроили ТВ и роутер. И компьютер и ТВ подключены к сети
-                                <em>demoTV</em>.
+                                Компьютер и телевизоры подключены к сети <em>DemoTV</em>.
                             </li>
-
-                            <li title="Запуск ТВ">
-                                Включите ТВ на витрине и дождитесь загрузки операционной системы.
+                            <li title="Запуск трансляции">
+                                Откройте <code>StreamTV</code> на компьютере и нажмите
+                                <code>Запустить трансляцию</code>.
                             </li>
-
-                            <li title="Запуск приложения">
-                                Откройте приложение <code>StreamTV</code> на управляющем компьютере и нажмите кнопку
-                                <code>запустить стрим HLS.</code>
+                            <li title="Автоматический запуск">
+                                Телевизоры с включением по сети включатся сами; остальные включите пультом — показ на них
+                                начнётся автоматически. Сколько ТВ играет, видно в заголовке программы, в строке
+                                «Телевизоры» главного окна и на пульте с телефона.
                             </li>
-
-                            <li title="Удалённый запуск браузера">
-                                По очереди нажмите кнопки <code>Android</code>, <code>WebOS</code>, <code>Tizen</code>.
-                                Через несколько секунд на ТВ начнут запускаться браузеры.
-                                Подтверждение этому отобразится в терминале приложения,
-                                а в заголовке вы увидите количество подключённых клиентов.
-                            </li>
-
-                            <li>Если ТВ ранее не запускался удалённо (или ТВ только что установлен), после нажатия
-                                кнопки удалённого включения браузера
-                                на экране ТВ появится запрос на разрешение запуска браузера. Нажмите кнопку "Да" с
-                                помощью пульта дистанционного управления.
+                            <li title="Новый телевизор">
+                                Если ТВ только что установлен, на его экране появится запрос на разрешение
+                                подключения — нажмите «Разрешить» с пульта.
                             </li>
                         </ul>
                     </div>

@@ -655,3 +655,78 @@
     }
   }
   
+
+
+/* ====================================
+   Пульт (боковая панель): состояние, список ТВ, действия
+==================================== */
+#sidebar { width: 320px; }
+@media (max-width: 768px) { #sidebar { width: 88vw; max-width: 360px; } }
+.remote-head { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.remote-logo { width: 120px; max-width: 60%; border-radius: 10px; }
+.remote-state { color: #e8e8e8; font-size: 0.9em; padding: 0 4px; }
+#r-state { color: var(--primary); font-weight: bold; }
+.r-small { font-size: 0.8em; color: #bdbdbd; }
+.r-trouble { color: #ff5555; font-weight: bold; font-size: 0.85em; margin-top: 4px; }
+.r-sync { display: flex; align-items: center; gap: 6px; justify-content: center; color: var(--text); font-size: 0.85em; }
+.r-sync input {
+    width: 48px; padding: 4px; text-align: center; font-size: 0.95em;
+    background: #000; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px;
+}
+.r-tvs { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.r-group { color: var(--text); font-weight: bold; font-size: 0.8em; margin-top: 8px; text-transform: uppercase; }
+.r-tv {
+    display: grid; grid-template-columns: 10px 1fr auto; gap: 2px 8px; align-items: center; text-align: left;
+    width: 100%; padding: 7px 9px; background: rgba(0, 0, 0, 0.55); color: #e8e8e8; font-size: 0.85em;
+    border: 1px solid #333; border-radius: 8px; cursor: pointer;
+}
+.r-tv:active { border-color: var(--primary); }
+.r-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; }
+.r-dot.ok { background: var(--primary); }
+.r-dot.wait { background: var(--text); }
+.r-dot.bad { background: #ff3333; }
+.r-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
+.r-st { font-size: 0.85em; color: #bdbdbd; }
+.r-meta { grid-column: 2 / 4; font-size: 0.75em; color: #8a8a8a; }
+.tv-sheet {
+    position: fixed; inset: 0; z-index: 1001; background: rgba(0, 0, 0, 0.6);
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.tv-sheet[hidden] { display: none; }
+.tv-sheet-box {
+    width: 100%; max-width: 420px; padding: 14px 16px 22px; background: #111;
+    border-top: 2px solid var(--primary); border-radius: 14px 14px 0 0;
+}
+.tv-sheet-title { color: var(--primary); font-weight: bold; font-size: 1.05em; }
+.r-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 5%; color: #ccc; font-size: 0.85em; }
+.r-modes button {
+    padding: 6px 10px; background: #000; color: var(--text); border: 1px solid var(--text); border-radius: 6px; font-size: 0.9em;
+}
+.r-modes button.on { background: var(--text); color: #000; }
+
+#tv-sheet [hidden], .sidebar-content [hidden] { display: none !important; }
+
+/* Текст инструкции можно выделить и скопировать (адреса, пути настроек) */
+.container, .container li, .container code, .r-meta, .command-log { -webkit-user-select: text; user-select: text; }
+.accordion-content img { max-width: 100%; height: auto; }
+
+/* Пульт всегда виден целиком под шапкой, на любой прокрутке страницы (раньше: sticky со сдвигом -768px) */
+#sidebar, #sidebar.active {
+    position: fixed !important;
+    margin-top: 0 !important;
+    top: var(--nav-h, 60px) !important;
+    left: 0;
+    height: calc(100vh - var(--nav-h, 60px)) !important;
+    height: calc(100dvh - var(--nav-h, 60px)) !important;
+}
+/* Больше места списку ТВ в пульте: компактный журнал и логотип внизу */
+#sidebar .command-log { max-height: 70px; font-size: 12px; }
+#sidebar .sidebar-footer { padding: 18px; background-size: 140%; }
+#sidebar .sidebar-btn { margin: 4px auto; padding: 8px 14px; }
+#sidebar .ws-status { margin: 6px 10px; padding: 6px; }
+
+.r-connect { display: flex; flex-direction: column; gap: 4px; }
+.r-connect input {
+    margin: 0 5%; padding: 6px 8px; text-align: center; font-size: 0.95em;
+    background: #000; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px;
+}
