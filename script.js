@@ -383,7 +383,7 @@ function setupRemote() {
 window.addEventListener('load', setupRemote);
 
 // Адрес инструкции в тексте: сайт, с которого её открыли, или основной адрес (если открыта с самой программы)
-const SITE_ADDRESS = 'st.alexkyubi.com';
+const SITE_ADDRESS = 'stv.alexkyubi.com';
 document.addEventListener('DOMContentLoaded', () => {
     const site = /alexkyubi\.com$/.test(location.hostname) ? location.hostname : SITE_ADDRESS;
     document.querySelectorAll('.site-address').forEach(el => { el.textContent = site; });
