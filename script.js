@@ -382,6 +382,14 @@ function setupRemote() {
 
 window.addEventListener('load', setupRemote);
 
+// Адрес инструкции в тексте: сайт, с которого её открыли, или основной адрес (если открыта с самой программы)
+const SITE_ADDRESS = 'st.alexkyubi.com';
+document.addEventListener('DOMContentLoaded', () => {
+    const site = /alexkyubi\.com$/.test(location.hostname) ? location.hostname : SITE_ADDRESS;
+    document.querySelectorAll('.site-address').forEach(el => { el.textContent = site; });
+    document.querySelectorAll('.site-link').forEach(el => { el.href = 'https://' + site + '/'; });
+});
+
 // Добавление сообщения в лог консоли для пользователя
 function addLogEntry(message) {
     const logContainer = document.getElementById("command-log");
