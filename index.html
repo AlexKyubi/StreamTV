@@ -42,7 +42,7 @@
         <div class="sidebar-content">
             <div id="ws-status" class="ws-status disconnected">🔎 Поиск сервера…</div>
             <div id="r-connect" class="r-connect" hidden>
-                <input id="r-host" type="text" inputmode="decimal" placeholder="192.168.1.200" aria-label="Адрес сервера">
+                <input id="r-host" type="text" inputmode="decimal" placeholder="адрес компьютера" aria-label="Адрес сервера">
                 <button class="sidebar-btn" id="r-retry">Найти сервер ещё раз</button>
                 <button class="sidebar-btn" id="r-open">Открыть пульт на сервере</button>
             </div>
@@ -211,15 +211,11 @@
                                     target="_blank">tplinkwifi.net</a> или <a href="http://192.168.1.1"
                                     target="_blank">192.168.1.1</a>. Придумайте логин и пароль для доступа к роутеру.
                             </li>
-                            <li title="Постоянный адрес компьютера (DHCP)">
+                            <li title="Настройка IP-адресов (DHCP)">
                                 Перейдите: <em>Расширенная</em> ➔ <em>Сеть</em> ➔
                                 <a href="http://192.168.1.1/#dhcpServerAdv" target="_blank">DHCP-сервер</a>.<br>
-                                Установите пул адресов IP: <code>192.168.1.2</code> — <code>192.168.1.249</code>.<br>
-                                Ниже зарезервируйте IP для управляющего компьютера:
-                                <em>+ Добавить</em> ➔ выбрать устройство ➔ указать IP <code>192.168.1.200</code> ➔
-                                сохранить.<br>
-                                <strong>Это обязательно:</strong> телевизоры хранят ролики, привязанные к адресу
-                                компьютера. Если адрес сменится, они заново скачают все ролики.
+                                Установите пул адресов IP: <code>192.168.1.2</code> — <code>192.168.1.249</code>.
+                                Резервировать адрес для компьютера не нужно: программа и пульт сами находят друг друга.
                             </li>
                             <li title="Настройка Wi-Fi">
                                 Отключите <a href="http://192.168.1.1/#hostNwAdv" target="_blank">Smart Connect</a>:
