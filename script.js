@@ -55,8 +55,8 @@ sidebarToggle.addEventListener('click', function () {
     openSidebar(!sidebar.classList.contains('active'));
 });
 
-// Жесты: открыть — свайп вправо от левого края экрана, закрыть — свайп влево.
-// Обычная прокрутка и горизонтальные движения посреди страницы меню не открывают.
+// Жесты: открыть — свайп слева направо, начатый в левой половине экрана; закрыть — свайп влево.
+// Не только от самого края: там жест «назад» телефона забирает касание себе. Вертикальная прокрутка не мешает.
 let touchStartY = 0;
 document.addEventListener('touchstart', function (event) {
     touchStartX = event.changedTouches[0].clientX;
@@ -67,8 +67,8 @@ document.addEventListener('touchend', function (event) {
     touchEndX = event.changedTouches[0].clientX;
     const dy = Math.abs(event.changedTouches[0].clientY - touchStartY);
     const dx = touchEndX - touchStartX;
-    if (Math.abs(dx) < 60 || dy > Math.abs(dx)) return;          // вертикальная прокрутка
-    if (dx > 0 && touchStartX < 40) openSidebar(true);
+    if (Math.abs(dx) < 60 || dy * 1.5 > Math.abs(dx)) return;    // короткое движение или прокрутка
+    if (dx > 0 && touchStartX < window.innerWidth / 2) openSidebar(true);
     else if (dx < 0 && sidebar.classList.contains('active')) openSidebar(false);
 }, { passive: true });
 
