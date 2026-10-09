@@ -11,7 +11,10 @@ function syncNavHeight() {
     var nav = document.querySelector('nav');
     if (nav) document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
 }
-document.addEventListener('DOMContentLoaded', syncNavHeight);
+document.addEventListener('DOMContentLoaded', function () {
+    syncNavHeight();
+    if (window.ResizeObserver) new ResizeObserver(syncNavHeight).observe(document.querySelector('nav'));
+});
 window.addEventListener('resize', syncNavHeight);
 setTimeout(hidePreloader, 1500);
 
@@ -29,7 +32,7 @@ function unloadVideos(root) {
         if (frame.src && frame.src !== 'about:blank') frame.src = 'about:blank';
     });
 }
-window.addEventListener('load', function () {
+document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () { loadVideos(document.querySelector('.video-section')); }, 800);
 });
 
@@ -89,54 +92,37 @@ document.addEventListener('click', function (event) {
 
 
 
-// Обработчик клика по заголовкам аккордеона
+// Keep expanded content natural-sized after the transition: images/fonts and rotation may resize it.
+function closeSection(header) {
+    var content = header.nextElementSibling;
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.offsetHeight; // Establish the current height before collapsing from an auto-sized section.
+    header.classList.remove('active');
+    content.style.maxHeight = '0px';
+    content.style.opacity = '0';
+    unloadVideos(content);
+}
 headers.forEach(function (header) {
     header.addEventListener('click', function () {
-        var isActive = header.classList.contains('active');
-        // Если нужно закрыть остальные
-        headers.forEach(function (h) {
-            if (h !== header) {
-                h.classList.remove('active');
-                h.nextElementSibling.style.maxHeight = "0px";
-                h.nextElementSibling.style.opacity = 0;
-                h.nextElementSibling.style.transform = 'scaleY(0)';
-                unloadVideos(h.nextElementSibling);
-            }
+        if (header.classList.contains('active')) { closeSection(header); return; }
+        headers.forEach(function (other) {
+            if (other !== header && other.classList.contains('active')) closeSection(other);
         });
-
-        if (!isActive) {
-            header.classList.add('active');
-            // Открываем блок
-            var content = header.nextElementSibling;
-            loadVideos(content);
-            unloadVideos(document.querySelector('.video-section'));
-            content.style.maxHeight = content.scrollHeight + "px";
-            content.style.opacity = 1;
-            content.style.transform = 'scaleY(1)';
-
-            // Ждём окончания анимации раскрытия (transition по max-height)
-            content.addEventListener('transitionend', function handler(e) {
-                if (e.propertyName === "max-height") {
-                    var navHeight = document.querySelector("nav").offsetHeight;
-                    var headerTop = header.getBoundingClientRect().top + window.pageYOffset;
-                    window.scrollTo({
-                        top: headerTop - navHeight,
-                        behavior: "smooth"
-                    });
-                    content.removeEventListener('transitionend', handler);
-                }
-            });
-        } else {
-            header.classList.remove('active');
-            // Закрываем блок
-            header.nextElementSibling.style.maxHeight = "0px";
-            header.nextElementSibling.style.opacity = 0;
-            header.nextElementSibling.style.transform = 'scaleY(0)';
-            unloadVideos(header.nextElementSibling);
-        }
+        var content = header.nextElementSibling;
+        header.classList.add('active');
+        loadVideos(content);
+        unloadVideos(document.querySelector('.video-section'));
+        content.style.maxHeight = content.scrollHeight + 'px';
+        content.style.opacity = '1';
+        setTimeout(function () {
+            if (!header.classList.contains('active')) return;
+            content.style.maxHeight = 'none';
+            var navHeight = document.querySelector('nav').offsetHeight;
+            window.scrollTo({ top: header.getBoundingClientRect().top + window.pageYOffset - navHeight - 8,
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        }, 550);
     });
 });
-
 
 // Переключение полноэкранного режима img
 function toggleFullscreen(img) {
@@ -380,7 +366,7 @@ function setupRemote() {
     setInterval(pollStatus, 3000);
 }
 
-window.addEventListener('load', setupRemote);
+document.addEventListener('DOMContentLoaded', setupRemote);
 
 // Адрес инструкции в тексте: сайт, с которого её открыли, или основной адрес (если открыта с самой программы)
 const SITE_ADDRESS = 'stv.alexkyubi.com';
