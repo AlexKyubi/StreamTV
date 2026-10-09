@@ -844,3 +844,6 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 #sidebar .sidebar-content { scrollbar-width: thin; scrollbar-color: #387838 #111; }
 #sidebar .sidebar-content::-webkit-scrollbar { display: block; width: 5px; }
 #sidebar .sidebar-content::-webkit-scrollbar-thumb { background: #387838; border-radius: 4px; }
+
+.tv-sheet .sidebar-btn { border: 1px solid #387838; box-shadow: 0 0 8px rgba(0, 255, 0, 0.12); }
+.tv-sheet .sidebar-btn:hover, .tv-sheet .sidebar-btn:focus-visible { border-color: var(--primary); }
