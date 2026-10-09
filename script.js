@@ -33,7 +33,9 @@ function unloadVideos(root) {
     });
 }
 document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(function () { loadVideos(document.querySelector('.video-section')); }, 800);
+    setTimeout(function () {
+        if (!document.querySelector('.accordion-header.active')) loadVideos(document.querySelector('.video-section'));
+    }, 800);
 });
 
 
@@ -104,7 +106,11 @@ function closeSection(header) {
 }
 headers.forEach(function (header) {
     header.addEventListener('click', function () {
-        if (header.classList.contains('active')) { closeSection(header); return; }
+        if (header.classList.contains('active')) {
+            closeSection(header);
+            loadVideos(document.querySelector('.video-section'));
+            return;
+        }
         headers.forEach(function (other) {
             if (other !== header && other.classList.contains('active')) closeSection(other);
         });
