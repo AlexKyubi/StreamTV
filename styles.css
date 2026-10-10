@@ -866,7 +866,18 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 
 .instr-note { margin: 6px 0 10px; color: #ddd; line-height: 1.45; }
 .instr-choice { margin: 8px 0 8px 10px; padding: 8px 10px; border-left: 3px solid var(--primary); background: rgba(0,0,0,.35); border-radius: 6px; }
-/* пульт компактнее: лого прячется после первого действия, журнал сообщений мелкий и низкий */
+/* пульт компактнее: лого прячется после первого действия */
 #sidebar.compact .remote-head { display: none; }
-#sidebar .command-log { max-height: 46px; font-size: 10px; padding: 4px 6px; line-height: 1.25; }
-#sidebar .command-log div { margin-bottom: 2px; }
+/* на телефоне пульт во всю ширину: сбоку не просвечивает страница */
+@media (max-width: 768px) { #sidebar, #sidebar.active { width: 100vw; max-width: none; border-right: none; } }
+/* журнал ответов: тонкая строка с последним сообщением, по нажатию — последние несколько */
+#sidebar .command-log {
+    font-family: inherit; font-size: 11px; line-height: 1.4; color: #a8e6a8;
+    background: rgba(0, 0, 0, .78); border: none; border-top: 1px solid rgba(0, 255, 0, .35);
+    padding: 5px 12px; min-height: 0; max-height: none; overflow: hidden; cursor: pointer;
+}
+#sidebar .command-log::after { display: none; }
+#sidebar .command-log div { display: none; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sidebar .command-log div:last-child { display: block; }
+#sidebar .command-log.open { max-height: 8.5em; overflow-y: auto; }
+#sidebar .command-log.open div { display: block; white-space: normal; padding: 1px 0; }

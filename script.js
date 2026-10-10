@@ -484,6 +484,8 @@ function openTv(tv) {
 }
 
 function setupRemote() {
+    // the reply log is one line; a tap shows the last few
+    document.getElementById('command-log').addEventListener('click', event => event.currentTarget.classList.toggle('open'));
     document.querySelector('#sidebar .sidebar-content').addEventListener('click', compactRemote);
     document.getElementById('tv-sheet').addEventListener('click', compactRemote);
     document.querySelectorAll('.sidebar-btn[data-cmd]').forEach(btn => {
@@ -551,7 +553,7 @@ function addLogEntry(message) {
     const logContainer = document.getElementById("command-log");
     if (!logContainer) return;
     const entry = document.createElement("div");
-    entry.textContent = ">_ " + message;
+    entry.textContent = "› " + message;
     logContainer.appendChild(entry);
     logContainer.scrollTop = logContainer.scrollHeight;
     if (logContainer.children.length > 10) logContainer.removeChild(logContainer.firstChild);
