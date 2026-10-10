@@ -347,8 +347,9 @@
     overflow: hidden;
     transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
     position: relative;
-    background: url('web/header-bg.jpg') no-repeat center center;
-    background-size: cover;
+    /* fixed scale: «cover» enlarged the picture with the height of the open section (long texts) */
+    background: url('web/header-bg.jpg') repeat center top;
+    background-size: 1200px auto;
   }
   
   .accordion-content::before {
@@ -847,3 +848,18 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 
 .tv-sheet .sidebar-btn { border: 1px solid #387838; box-shadow: 0 0 8px rgba(0, 255, 0, 0.12); }
 .tv-sheet .sidebar-btn:hover, .tv-sheet .sidebar-btn:focus-visible { border-color: var(--primary); }
+
+/* пульт: код сопряжения с экрана ТВ, найденные ТВ */
+.r-codes { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 10px; }
+.r-code { border: 2px solid var(--primary); border-radius: 10px; padding: 10px; background: rgba(0,0,0,.55); color: var(--text); }
+.r-code b { color: var(--primary); display: block; margin-bottom: 4px; }
+.r-code input { width: 100%; box-sizing: border-box; margin: 8px 0; padding: 10px; font-size: 1.4em; letter-spacing: .3em;
+                text-align: center; border-radius: 8px; border: 1px solid var(--text); background: #000; color: var(--text); }
+.r-code-btns { display: flex; gap: 6px; }
+.r-code-btns .sidebar-btn { flex: 1; margin: 0; }
+.r-center { text-align: center; margin: 4px 0; }
+.r-new .r-st { color: var(--primary); }
+.r-link { display: block; width: 100%; background: none; border: none; color: var(--text); cursor: pointer; text-decoration: underline; }
+
+.instr-note { margin: 6px 0 10px; color: #ddd; line-height: 1.45; }
+.instr-choice { margin: 8px 0 8px 10px; padding: 8px 10px; border-left: 3px solid var(--primary); background: rgba(0,0,0,.35); border-radius: 6px; }

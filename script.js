@@ -157,8 +157,15 @@ const PLAYING = { healthy: 1, page_confirmed: 1, playing: 1, rejoined: 1 };
 const TROUBLE = { blocked: 1, retry_wait: 1, recovery_needed: 1 };
 const BRANCHES = { browser: 'браузер', dlna: 'DLNA', cast: 'Cast' };
 const GROUPS = [['tizen', 'Samsung'], ['webos', 'LG'], ['android', 'Android']];
+const GROUPS_NAME = Object.fromEntries(GROUPS);
 const onServer = location.port === String(UI_PORT);          // страница открыта с самой программы
-let remote = { tvs: [], contents: [], managed: false, stream: false, current: null, base: null, lastOk: 0, seenLog: 0, scanning: false };
+let remote = { tvs: [], contents: [], managed: false, stream: false, current: null, base: null, lastOk: 0, seenLog: 0, scanning: false,
+               codes: [], codeKeys: '', found: [], scan: {}, foundOpen: false, scanSeen: null };
+
+// сопряжение и способы браузера Android (как в программе)
+const PAIRING = { paired: 'сопряжён', waiting: 'не сопряжён', gave_up: 'не сопряжён',
+                  cast_waiting: 'ждёт разрешения Cast на ТВ', cast_gave_up: 'Cast не разрешён' };
+const WAYS = { adb: 'ADB 5555', adb_wifi: 'ADB по Wi-Fi', cast: 'DashCast' };
 
 function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
 function lsSet(key, value) { try { localStorage.setItem(key, value); } catch (e) { } }
@@ -263,6 +270,8 @@ function renderStatus(data) {
     remote.managed = !!data.managed;
     remote.tvs = data.tvs || [];
     remote.contents = data.contents || [];
+    renderCodes(data.codes || []);
+    renderFound(data.found || [], data.scan || {});
     const o = data.overview || {};
     const active = (o.total || 0) - (o.paused || 0);
     document.getElementById('r-state').textContent = remote.stream ? 'Трансляция идёт' : 'Трансляция остановлена';
@@ -292,7 +301,8 @@ function renderStatus(data) {
             row.className = 'r-tv';
             const dot = PLAYING[tv.stage] ? 'ok' : TROUBLE[tv.stage] ? 'bad' : tv.stage ? 'wait' : '';
             const state = tv.paused ? 'пауза' : (STAGES[tv.stage] || (remote.stream ? 'нет данных' : '—'));
-            const extra = [tv.host, BRANCHES[tv.branch], contentName(tv), tv.cache != null ? `кэш ${tv.cache}%` : '']
+            const unpaired = tv.pairing === 'waiting' || tv.pairing === 'gave_up' ? 'не сопряжён' : '';
+            const extra = [tv.host, BRANCHES[tv.branch], contentName(tv), tv.cache != null ? `кэш ${tv.cache}%` : '', unpaired]
                 .filter(Boolean).join(' · ');
             row.innerHTML = `<span class="r-dot ${dot}"></span><span class="r-name"></span><span class="r-st"></span><span class="r-meta"></span>`;
             row.querySelector('.r-name').textContent = tvName(tv);
@@ -362,15 +372,106 @@ function fillContents(tv) {
     });
 }
 
+// ТВ, ждущие код с экрана: одна плашка на ТВ; пока что-то вводят, плашки не перерисовываются
+function renderCodes(codes) {
+    remote.codes = codes;
+    const box = document.getElementById('r-codes');
+    const keys = codes.map(c => c.key).join('|');
+    box.hidden = !codes.length;
+    if (keys === remote.codeKeys) return;
+    remote.codeKeys = keys;
+    box.innerHTML = '';
+    codes.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'r-code';
+        card.innerHTML = '<b></b><div class="r-small"></div><input type="text" maxlength="6" autocomplete="off">' +
+                         '<div class="r-code-btns"><button class="sidebar-btn">Отправить код</button>' +
+                         '<button class="sidebar-btn">Отмена</button></div>';
+        card.querySelector('b').textContent = `${c.name || c.host} ждёт код`;
+        card.querySelector('.r-small').textContent = c.wireless
+            ? 'На этом ТВ откройте: Настройки → Для разработчиков → Отладка по Wi-Fi → «Подключить устройство с кодом». ' +
+              'Введите 6 цифр с экрана ТВ. Окно с кодом на ТВ не закрывайте.'
+            : 'Введите 6 символов, которые показывает экран ТВ.';
+        const input = card.querySelector('input');
+        input.inputMode = c.wireless ? 'numeric' : 'text';
+        input.placeholder = c.wireless ? '6 цифр' : '6 символов';
+        const [send, cancel] = card.querySelectorAll('button');
+        send.addEventListener('click', () => {
+            const code = input.value.replace(/\s/g, '');
+            if (!/^[0-9A-Fa-f]{6}$/.test(code)) { addLogEntry('Код — 6 символов с экрана ТВ'); return; }
+            sendControl('tv', { action: 'code', key: c.key, code });
+            remote.codeKeys = '';
+        });
+        cancel.addEventListener('click', () => { sendControl('tv', { action: 'code', key: c.key, code: 'cancel' }); remote.codeKeys = ''; });
+        box.appendChild(card);
+    });
+}
+
+// найденные поиском, но не добавленные ТВ
+function renderFound(found, scan) {
+    remote.found = found;
+    remote.scan = scan;
+    const state = document.getElementById('r-scan-state');
+    const button = document.getElementById('r-scan');
+    button.disabled = !!scan.running;
+    button.textContent = scan.running ? 'Идёт поиск…' : 'Найти новые ТВ';
+    // a search finished since the page last looked: show what it found
+    if (scan.at && !scan.running && remote.scanSeen !== null && scan.at !== remote.scanSeen) remote.foundOpen = true;
+    remote.scanSeen = scan.at || 0;
+    state.hidden = !(scan.running || scan.at || found.length);
+    state.textContent = scan.running ? 'Ищу телевизоры в сети, это до минуты…'
+        : scan.error ? 'Поиск не удался, повторите'
+        : !found.length ? 'Новых ТВ нет'
+        : `Новых ТВ: ${found.length} — ` + (remote.foundOpen ? 'скрыть ▴' : 'показать ▾');
+    const box = document.getElementById('r-found');
+    box.hidden = !found.length || !remote.foundOpen;
+    box.innerHTML = '';
+    found.forEach(tv => {
+        const row = document.createElement('button');
+        row.className = 'r-tv r-new';
+        row.innerHTML = '<span class="r-dot"></span><span class="r-name"></span><span class="r-st">добавить</span><span class="r-meta"></span>';
+        row.querySelector('.r-name').textContent = tv.name || tv.model || tv.host;
+        row.querySelector('.r-meta').textContent = [tv.host, GROUPS_NAME[tv.platform], (tv.ways || []).join(', ')]
+            .filter(Boolean).join(' · ');
+        row.addEventListener('click', () => {
+            if (confirm(`Добавить ${tv.name || tv.host} в список? Начнётся сопряжение — подтвердите его на экране ТВ.`))
+                sendControl('add_tv', { key: tv.key });
+        });
+        box.appendChild(row);
+    });
+}
+
+// способ браузера Android: авто или один из доступных у ТВ
+function fillBrowser(tv) {
+    const box = document.getElementById('tv-browser');
+    box.querySelectorAll('button').forEach(b => b.remove());
+    const ways = tv.ways || [];
+    box.hidden = tv.platform !== 'android' || !ways.length;
+    const add = (via, text) => {
+        const b = document.createElement('button');
+        b.textContent = text;
+        b.classList.toggle('on', (tv.via || 'auto') === via);
+        b.addEventListener('click', () => {
+            sendControl('tv', { action: 'browser', key: tv.key, via });
+            document.getElementById('tv-sheet').hidden = true;
+        });
+        box.appendChild(b);
+    };
+    add('auto', 'Авто');
+    ways.forEach(w => add(w, WAYS[w] || w));
+}
+
 function openTv(tv) {
     remote.current = tv;
     document.getElementById('tv-sheet-title').textContent = tvName(tv);
     document.getElementById('tv-sheet-info').textContent =
-        [tv.model, tv.host, tv.branch ? 'показ: ' + BRANCHES[tv.branch] : '', tv.reason || ''].filter(Boolean).join(' · ');
+        [tv.model, tv.host, tv.branch ? 'показ: ' + BRANCHES[tv.branch] : '', PAIRING[tv.pairing] || '', tv.reason || '']
+            .filter(Boolean).join(' · ');
     document.getElementById('act-pause').hidden = !!tv.paused;
     document.getElementById('act-resume').hidden = !tv.paused;
     document.querySelectorAll('#tv-sheet [data-mode]').forEach(b => b.classList.toggle('on', (tv.mode || 'auto') === b.dataset.mode));
     fillContents(tv);
+    fillBrowser(tv);
     document.getElementById('tv-sheet').hidden = false;
 }
 
@@ -403,6 +504,10 @@ function setupRemote() {
             if (remote.current) sendControl('tv', { action: 'mode', key: remote.current.key, mode: btn.dataset.mode });
             document.getElementById('tv-sheet').hidden = true;
         });
+    });
+    document.getElementById('r-scan-state').addEventListener('click', () => {
+        remote.foundOpen = !remote.foundOpen;
+        renderFound(remote.found, remote.scan);
     });
     document.getElementById('tv-sheet').addEventListener('click', event => {
         if (event.target.id === 'tv-sheet') event.currentTarget.hidden = true;
