@@ -881,12 +881,29 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 #sidebar .command-log div:last-child { display: block; }
 #sidebar .command-log.open { max-height: 8.5em; overflow-y: auto; }
 #sidebar .command-log.open div { display: block; white-space: normal; padding: 1px 0; }
-/* выбор в карточке ТВ: подпись строкой выше, компактные «таблетки»; выбранная — зелёная рамка, а не заливка */
-#tv-sheet .r-modes { gap: 5px; margin: 10px 5% 4px; }
-#tv-sheet .r-modes > span { flex-basis: 100%; font-size: 11px; color: #9a9a9a; text-transform: uppercase; letter-spacing: .04em; }
-#tv-sheet .r-modes button {
-    padding: 5px 11px; font-size: 12.5px; line-height: 1.2; border-radius: 14px;
-    background: rgba(255, 255, 255, .04); color: #d8d8d8; border: 1px solid #4a4a4a;
-}
-#tv-sheet .r-modes button.on { background: rgba(0, 255, 0, .12); color: var(--primary); border-color: var(--primary); }
-#tv-sheet .r-modes button:disabled { opacity: .3; }
+/* настройки ТВ в карточке: строки «название — значение ›» */
+.r-settings { margin: 8px 5%; border: 1px solid #333; border-radius: 10px; overflow: hidden; }
+.r-setting { display: flex; align-items: center; width: 100%; gap: 8px; padding: 11px 12px; background: rgba(255,255,255,.03);
+             border: none; border-bottom: 1px solid #2a2a2a; color: #ddd; font-size: 14px; text-align: left; cursor: pointer; }
+.r-setting:last-child { border-bottom: none; }
+.r-setting-name { flex: 0 0 auto; color: #aaa; }
+.r-setting-value { flex: 1; text-align: right; color: var(--primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r-setting-go { color: #777; font-size: 18px; line-height: 1; }
+/* список выбора: выезжает снизу поверх карточки */
+.r-picker { position: fixed; inset: 0; z-index: 3500; background: rgba(0,0,0,.6); display: flex; align-items: flex-end; }
+.r-picker[hidden] { display: none; }
+.r-picker-box { width: 100%; max-width: 520px; margin: 0 auto; background: #0b0b0b; border-top: 2px solid var(--primary);
+                border-radius: 14px 14px 0 0; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); max-height: 75vh; overflow-y: auto; }
+.r-picker-title { color: var(--primary); font-weight: bold; font-size: 1.05em; }
+.r-picker-list { display: flex; flex-direction: column; margin: 8px 0; }
+.r-option { display: flex; align-items: center; gap: 10px; padding: 12px 6px; background: none; border: none;
+            border-bottom: 1px solid #222; color: #ddd; font-size: 15px; text-align: left; cursor: pointer; }
+.r-option:disabled { color: #555; }
+.r-check { width: 18px; height: 18px; border: 1px solid #555; border-radius: 50%; flex: 0 0 auto; }
+.r-option.on .r-check { border-color: var(--primary); background: radial-gradient(var(--primary) 45%, transparent 50%); }
+.r-option.on { color: var(--primary); }
+.r-picker-btns { display: flex; gap: 8px; }
+.r-picker-btns .sidebar-btn { flex: 1; margin: 0; }
+.r-picker-btns .sidebar-btn[hidden] { display: none; }
+.r-picker-list.multi .r-check { border-radius: 4px; }
+.r-picker-list.multi .r-option.on .r-check { background: var(--primary); box-shadow: inset 0 0 0 3px #0b0b0b; }

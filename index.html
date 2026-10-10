@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <!-- Подключение иконки -->
     <link rel="icon" href="web/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=20261010-pills">
+    <link rel="stylesheet" href="styles.css?v=20261010-settings2">
 
 </head>
 
@@ -75,6 +75,19 @@
     <!-- ТВ ждёт код сопряжения с его экрана: окно поверх пульта, у верхнего края (снизу — клавиатура телефона) -->
     <div id="r-codes" class="r-codes" hidden></div>
 
+    <!-- Список выбора для настройки ТВ (выезжает снизу) -->
+    <div id="r-picker" class="r-picker" hidden>
+        <div class="r-picker-box">
+            <div id="r-picker-title" class="r-picker-title"></div>
+            <div id="r-picker-hint" class="r-small"></div>
+            <div id="r-picker-list" class="r-picker-list"></div>
+            <div class="r-picker-btns">
+                <button id="r-picker-cancel" class="sidebar-btn">Отмена</button>
+                <button id="r-picker-done" class="sidebar-btn">Готово</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Действия с одним ТВ -->
     <div id="tv-sheet" class="tv-sheet" hidden>
         <div class="tv-sheet-box">
@@ -84,19 +97,8 @@
             <button class="sidebar-btn" data-act="restart">Перезапустить показ</button>
             <button class="sidebar-btn" data-act="pause" id="act-pause">Пауза показа</button>
             <button class="sidebar-btn" data-act="resume" id="act-resume">Возобновить показ</button>
-            <div class="r-modes">
-                <span>Способ показа:</span>
-                <button data-mode="auto">Авто</button>
-                <button data-mode="browser">Браузер</button>
-                <button data-mode="dlna">DLNA</button>
-                <button data-mode="cast">Cast</button>
-            </div>
-            <div class="r-modes" id="tv-contents" hidden>
-                <span>Контент:</span>
-            </div>
-            <div class="r-modes" id="tv-browser" hidden>
-                <span>Браузер:</span>
-            </div>
+            <!-- настройки ТВ: строка «название — текущее значение ›», выбор в списке снизу -->
+            <div id="tv-settings" class="r-settings"></div>
             <button class="sidebar-btn" data-act="pair">Запросить сопряжение</button>
             <button class="sidebar-btn" data-act="cache">Очистить кэш роликов</button>
             <button class="sidebar-btn" data-act="close">Закрыть</button>
@@ -481,7 +483,7 @@
         <p>StreamTV &copy; 2025</p>
     </footer>
 
-    <script src="script.js?v=20261010-pills">
+    <script src="script.js?v=20261010-settings2">
     </script>
 
 </body>

@@ -339,40 +339,6 @@ function contentName(tv) {
     return '«' + remote.contents.filter(c => sel.includes(c.id)).map(c => c.name).join(' + ') + '»';
 }
 
-// мультивыбор: «Все каналы» и переключатель каждого канала (последний канал снять нельзя;
-// при «Все каналы» клик по каналу оставляет только его)
-function fillContents(tv) {
-    const box = document.getElementById('tv-contents');
-    box.querySelectorAll('button').forEach(b => b.remove());
-    box.hidden = remote.contents.length < 2;
-    const sel = tvSelection(tv);
-    const send = ids => {
-        const all = ids.length === remote.contents.length;
-        sendControl('tv', { action: 'content', key: tv.key, content: all ? 'all' : ids.join('+') });
-        document.getElementById('tv-sheet').hidden = true;
-    };
-    const everything = document.createElement('button');
-    everything.textContent = 'Все каналы';
-    everything.classList.toggle('on', sel.length === remote.contents.length);
-    everything.addEventListener('click', () => send(remote.contents.map(c => c.id)));
-    box.appendChild(everything);
-    remote.contents.forEach(content => {
-        const button = document.createElement('button');
-        button.textContent = content.name;
-        // «Все каналы» is one choice: then only it is lit, not every channel too
-        button.classList.toggle('on', sel.length < remote.contents.length && sel.includes(content.id));
-        button.addEventListener('click', () => {
-            // из «Все каналы» клик оставляет только этот канал; дальше клики добавляют и снимают
-            const everyChannel = sel.length === remote.contents.length;
-            const next = everyChannel ? [content.id]
-                : sel.includes(content.id) ? sel.filter(id => id !== content.id) : sel.concat(content.id);
-            if (!next.length) { addLogEntry('Хотя бы один канал должен остаться'); return; }
-            send(remote.contents.map(c => c.id).filter(id => next.includes(id)));
-        });
-        box.appendChild(button);
-    });
-}
-
 // ТВ, ждущие код с экрана: одна плашка на ТВ; пока что-то вводят, плашки не перерисовываются
 function renderCodes(codes) {
     remote.codes = codes;
@@ -450,24 +416,94 @@ function renderFound(found, scan) {
     });
 }
 
-// способ браузера Android: авто или один из доступных у ТВ
-function fillBrowser(tv) {
-    const box = document.getElementById('tv-browser');
-    box.querySelectorAll('button').forEach(b => b.remove());
-    const ways = tv.ways || [];
-    box.hidden = tv.platform !== 'android' || !ways.length;
-    const add = (via, text) => {
-        const b = document.createElement('button');
-        b.textContent = text;
-        b.classList.toggle('on', (tv.via || 'auto') === via);
-        b.addEventListener('click', () => {
-            sendControl('tv', { action: 'browser', key: tv.key, via });
-            document.getElementById('tv-sheet').hidden = true;
+// ---------- настройки ТВ: строки «название — значение ›», выбор в списке снизу
+const MODE_NAMES = { auto: 'Авто', browser: 'Браузер', dlna: 'DLNA', cast: 'Cast' };
+
+function settingRow(box, title, value, open) {
+    const row = document.createElement('button');
+    row.className = 'r-setting';
+    row.innerHTML = '<span class="r-setting-name"></span><span class="r-setting-value"></span><span class="r-setting-go">›</span>';
+    row.querySelector('.r-setting-name').textContent = title;
+    row.querySelector('.r-setting-value').textContent = value;
+    row.addEventListener('click', open);
+    box.appendChild(row);
+}
+
+// options: [{id, text, disabled}]; one choice -> sent at once; several -> «Готово» sends one command
+function openPicker({ title, hint, options, chosen, multi, apply }) {
+    const sheet = document.getElementById('r-picker');
+    const list = document.getElementById('r-picker-list');
+    let picked = chosen.slice();
+    document.getElementById('r-picker-title').textContent = title;
+    document.getElementById('r-picker-hint').textContent = hint || '';
+    document.getElementById('r-picker-done').hidden = !multi;
+    list.classList.toggle('multi', !!multi);              // square boxes: several can be ticked
+    const draw = () => {
+        list.innerHTML = '';
+        options.forEach(opt => {
+            const item = document.createElement('button');
+            item.className = 'r-option' + (picked.includes(opt.id) ? ' on' : '');
+            item.disabled = !!opt.disabled;
+            item.innerHTML = '<span class="r-check"></span><span></span>';
+            item.lastChild.textContent = opt.text + (opt.disabled ? ' — нет у ТВ' : '');
+            item.addEventListener('click', () => {
+                if (!multi) { sheet.hidden = true; apply(opt.id); return; }
+                picked = opt.toggle(picked);
+                draw();
+            });
+            list.appendChild(item);
         });
-        box.appendChild(b);
     };
-    add('auto', 'Авто');
-    ways.forEach(w => add(w, WAYS[w] || w));
+    document.getElementById('r-picker-done').onclick = () => { sheet.hidden = true; apply(picked); };
+    draw();
+    sheet.hidden = false;
+}
+
+function renderSettings(tv) {
+    const box = document.getElementById('tv-settings');
+    box.innerHTML = '';
+    const close = () => { document.getElementById('tv-sheet').hidden = true; };
+    // способ показа
+    const mode = tv.mode || 'auto';
+    settingRow(box, 'Способ показа', MODE_NAMES[mode] || mode, () => openPicker({
+        title: 'Способ показа', hint: 'Авто: браузер, при сбое DLNA, затем Cast.', chosen: [mode],
+        options: Object.keys(MODE_NAMES).map(id => ({ id, text: MODE_NAMES[id],
+            disabled: id !== 'auto' && Array.isArray(tv.modes) && !tv.modes.includes(id) })),
+        apply: id => { sendControl('tv', { action: 'mode', key: tv.key, mode: id }); close(); },
+    }));
+    // контент: «Все каналы» или несколько каналов
+    if (remote.contents.length > 1) {
+        const ids = remote.contents.map(c => c.id);
+        const sel = tvSelection(tv);
+        const all = sel.length === ids.length;
+        const toChosen = list => list.length === ids.length ? ['all'] : list;
+        settingRow(box, 'Контент', all ? 'Все каналы' : contentName(tv).replace(/[«»]/g, ''), () => openPicker({
+            title: 'Контент', hint: 'Отметьте каналы и нажмите «Готово».', multi: true, chosen: toChosen(sel),
+            options: [{ id: 'all', text: 'Все каналы', toggle: () => ['all'] }].concat(remote.contents.map(c => ({
+                id: c.id, text: c.name,
+                toggle: picked => {
+                    const cur = picked.includes('all') ? [] : picked;
+                    const next = cur.includes(c.id) ? cur.filter(x => x !== c.id) : cur.concat(c.id);
+                    return next.length ? toChosen(ids.filter(x => next.includes(x))) : ['all'];
+                },
+            }))),
+            apply: picked => {
+                const chosen = picked.includes('all') ? 'all' : picked.join('+');
+                sendControl('tv', { action: 'content', key: tv.key, content: chosen });
+                close();
+            },
+        }));
+    }
+    // браузер Android
+    const ways = tv.ways || [];
+    if (tv.platform === 'android' && ways.length) {
+        const via = tv.via || 'auto';
+        settingRow(box, 'Браузер', via === 'auto' ? 'Авто' : (WAYS[via] || via), () => openPicker({
+            title: 'Браузер', hint: 'Авто: ADB 5555, затем отладка по Wi-Fi, затем DashCast.', chosen: [via],
+            options: [{ id: 'auto', text: 'Авто' }].concat(ways.map(w => ({ id: w, text: WAYS[w] || w }))),
+            apply: id => { sendControl('tv', { action: 'browser', key: tv.key, via: id }); close(); },
+        }));
+    }
 }
 
 function openTv(tv) {
@@ -479,13 +515,7 @@ function openTv(tv) {
             .filter(Boolean).join(' · ');
     document.getElementById('act-pause').hidden = !!tv.paused;
     document.getElementById('act-resume').hidden = !tv.paused;
-    document.querySelectorAll('#tv-sheet [data-mode]').forEach(b => {
-        b.classList.toggle('on', (tv.mode || 'auto') === b.dataset.mode);
-        // a way the TV does not have is shown but cannot be chosen (older programs send no list: all allowed)
-        b.disabled = b.dataset.mode !== 'auto' && Array.isArray(tv.modes) && !tv.modes.includes(b.dataset.mode);
-    });
-    fillContents(tv);
-    fillBrowser(tv);
+    renderSettings(tv);
     document.getElementById('tv-sheet').hidden = false;
 }
 
@@ -517,11 +547,9 @@ function setupRemote() {
             document.getElementById('tv-sheet').hidden = true;
         });
     });
-    document.querySelectorAll('#tv-sheet [data-mode]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (remote.current) sendControl('tv', { action: 'mode', key: remote.current.key, mode: btn.dataset.mode });
-            document.getElementById('tv-sheet').hidden = true;
-        });
+    document.getElementById('r-picker-cancel').addEventListener('click', () => { document.getElementById('r-picker').hidden = true; });
+    document.getElementById('r-picker').addEventListener('click', event => {
+        if (event.target.id === 'r-picker') event.currentTarget.hidden = true;
     });
     document.getElementById('r-scan-state').addEventListener('click', () => {
         remote.foundOpen = !remote.foundOpen;
