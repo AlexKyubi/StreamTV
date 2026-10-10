@@ -46,8 +46,6 @@
                 <button class="sidebar-btn" id="r-retry">Найти сервер ещё раз</button>
                 <button class="sidebar-btn" id="r-open">Открыть пульт на сервере</button>
             </div>
-            <!-- ТВ ждёт код сопряжения с его экрана -->
-            <div id="r-codes" class="r-codes" hidden></div>
             <div class="remote-state">
                 <div id="r-state">Подключение к программе…</div>
                 <div id="r-summary" class="r-small"></div>
@@ -73,6 +71,9 @@
 
         <div id="command-log" class="command-log"></div>
     </div>
+
+    <!-- ТВ ждёт код сопряжения с его экрана: окно поверх пульта, у верхнего края (снизу — клавиатура телефона) -->
+    <div id="r-codes" class="r-codes" hidden></div>
 
     <!-- Действия с одним ТВ -->
     <div id="tv-sheet" class="tv-sheet" hidden>

@@ -381,7 +381,8 @@ function renderCodes(codes) {
     if (keys === remote.codeKeys) return;
     remote.codeKeys = keys;
     box.innerHTML = '';
-    codes.forEach(c => {
+    if (codes.length) document.getElementById('tv-sheet').hidden = true;      // the code comes first
+    codes.slice(0, 1).forEach(c => {
         const card = document.createElement('div');
         card.className = 'r-code';
         card.innerHTML = '<b></b><div class="r-small"></div><input type="text" maxlength="6" autocomplete="off">' +
@@ -403,8 +404,15 @@ function renderCodes(codes) {
             remote.codeKeys = '';
         });
         cancel.addEventListener('click', () => { sendControl('tv', { action: 'code', key: c.key, code: 'cancel' }); remote.codeKeys = ''; });
+        input.addEventListener('keydown', event => { if (event.key === 'Enter') send.click(); });
         box.appendChild(card);
+        setTimeout(() => input.focus(), 50);
     });
+}
+
+// the logo takes half of a phone screen: hidden once the remote is used (until the page is reloaded)
+function compactRemote() {
+    document.getElementById('sidebar').classList.add('compact');
 }
 
 // найденные поиском, но не добавленные ТВ
@@ -476,6 +484,8 @@ function openTv(tv) {
 }
 
 function setupRemote() {
+    document.querySelector('#sidebar .sidebar-content').addEventListener('click', compactRemote);
+    document.getElementById('tv-sheet').addEventListener('click', compactRemote);
     document.querySelectorAll('.sidebar-btn[data-cmd]').forEach(btn => {
         btn.addEventListener('click', () => {
             const cmd = btn.dataset.cmd;

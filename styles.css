@@ -850,8 +850,11 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 .tv-sheet .sidebar-btn:hover, .tv-sheet .sidebar-btn:focus-visible { border-color: var(--primary); }
 
 /* пульт: код сопряжения с экрана ТВ, найденные ТВ */
-.r-codes { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 10px; }
-.r-code { border: 2px solid var(--primary); border-radius: 10px; padding: 10px; background: rgba(0,0,0,.55); color: var(--text); }
+.r-codes { position: fixed; z-index: 3000; left: 8px; right: 8px; top: calc(var(--nav-h, 60px) + 6px);
+           max-width: 420px; margin: 0 auto; }
+.r-codes[hidden] { display: none; }
+.r-code { background: #070707; box-shadow: 0 0 0 100vmax rgba(0,0,0,.6), 0 6px 30px rgba(0,0,0,.9); }
+.r-code { border: 2px solid var(--primary); border-radius: 10px; padding: 10px; background: #070707; color: var(--text); }
 .r-code b { color: var(--primary); display: block; margin-bottom: 4px; }
 .r-code input { width: 100%; box-sizing: border-box; margin: 8px 0; padding: 10px; font-size: 1.4em; letter-spacing: .3em;
                 text-align: center; border-radius: 8px; border: 1px solid var(--text); background: #000; color: var(--text); }
@@ -863,3 +866,7 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 
 .instr-note { margin: 6px 0 10px; color: #ddd; line-height: 1.45; }
 .instr-choice { margin: 8px 0 8px 10px; padding: 8px 10px; border-left: 3px solid var(--primary); background: rgba(0,0,0,.35); border-radius: 6px; }
+/* пульт компактнее: лого прячется после первого действия, журнал сообщений мелкий и низкий */
+#sidebar.compact .remote-head { display: none; }
+#sidebar .command-log { max-height: 46px; font-size: 10px; padding: 4px 6px; line-height: 1.25; }
+#sidebar .command-log div { margin-bottom: 2px; }
