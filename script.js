@@ -359,7 +359,8 @@ function fillContents(tv) {
     remote.contents.forEach(content => {
         const button = document.createElement('button');
         button.textContent = content.name;
-        button.classList.toggle('on', sel.includes(content.id));
+        // «Все каналы» is one choice: then only it is lit, not every channel too
+        button.classList.toggle('on', sel.length < remote.contents.length && sel.includes(content.id));
         button.addEventListener('click', () => {
             // из «Все каналы» клик оставляет только этот канал; дальше клики добавляют и снимают
             const everyChannel = sel.length === remote.contents.length;
@@ -473,11 +474,16 @@ function openTv(tv) {
     remote.current = tv;
     document.getElementById('tv-sheet-title').textContent = tvName(tv);
     document.getElementById('tv-sheet-info').textContent =
-        [tv.model, tv.host, tv.branch ? 'показ: ' + BRANCHES[tv.branch] : '', PAIRING[tv.pairing] || '', tv.reason || '']
+        [tv.model !== tvName(tv) ? tv.model : '', tv.host, tv.branch ? 'показ: ' + BRANCHES[tv.branch] : '',
+         PAIRING[tv.pairing] || '', tv.reason || '']
             .filter(Boolean).join(' · ');
     document.getElementById('act-pause').hidden = !!tv.paused;
     document.getElementById('act-resume').hidden = !tv.paused;
-    document.querySelectorAll('#tv-sheet [data-mode]').forEach(b => b.classList.toggle('on', (tv.mode || 'auto') === b.dataset.mode));
+    document.querySelectorAll('#tv-sheet [data-mode]').forEach(b => {
+        b.classList.toggle('on', (tv.mode || 'auto') === b.dataset.mode);
+        // a way the TV does not have is shown but cannot be chosen (older programs send no list: all allowed)
+        b.disabled = b.dataset.mode !== 'auto' && Array.isArray(tv.modes) && !tv.modes.includes(b.dataset.mode);
+    });
     fillContents(tv);
     fillBrowser(tv);
     document.getElementById('tv-sheet').hidden = false;

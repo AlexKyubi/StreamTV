@@ -881,3 +881,12 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 #sidebar .command-log div:last-child { display: block; }
 #sidebar .command-log.open { max-height: 8.5em; overflow-y: auto; }
 #sidebar .command-log.open div { display: block; white-space: normal; padding: 1px 0; }
+/* выбор в карточке ТВ: подпись строкой выше, компактные «таблетки»; выбранная — зелёная рамка, а не заливка */
+#tv-sheet .r-modes { gap: 5px; margin: 10px 5% 4px; }
+#tv-sheet .r-modes > span { flex-basis: 100%; font-size: 11px; color: #9a9a9a; text-transform: uppercase; letter-spacing: .04em; }
+#tv-sheet .r-modes button {
+    padding: 5px 11px; font-size: 12.5px; line-height: 1.2; border-radius: 14px;
+    background: rgba(255, 255, 255, .04); color: #d8d8d8; border: 1px solid #4a4a4a;
+}
+#tv-sheet .r-modes button.on { background: rgba(0, 255, 0, .12); color: var(--primary); border-color: var(--primary); }
+#tv-sheet .r-modes button:disabled { opacity: .3; }
