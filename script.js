@@ -82,7 +82,9 @@ document.addEventListener('click', function (event) {
     const isClickInsideSidebar = sidebar.contains(event.target);
     const isClickOnToggle = sidebarToggle.contains(event.target);
 
-    const isClickInSheet = document.getElementById('tv-sheet').contains(event.target);
+    // the remote's own windows (TV card, choice list, code) and elements redrawn by the tap belong to it
+    const isClickInSheet = ['tv-sheet', 'r-picker', 'r-codes'].some(id => document.getElementById(id).contains(event.target))
+        || !document.contains(event.target);
     if (!isClickInsideSidebar && !isClickOnToggle && !isClickInSheet) {
         sidebar.classList.remove('active');
     }
@@ -265,7 +267,12 @@ function tvName(tv) {
     return n || tv.model || tv.host;
 }
 
+function remoteFolded() {
+    return (lsGet('stv_folded') || '').split(',').filter(Boolean);
+}
+
 function renderStatus(data) {
+    remote.lastStatus = data;
     remote.stream = !!data.stream;
     remote.managed = !!data.managed;
     remote.tvs = data.tvs || [];
@@ -294,10 +301,21 @@ function renderStatus(data) {
     GROUPS.forEach(([platform, label]) => {
         const tvs = remote.tvs.filter(t => t.platform === platform).sort((a, b) => tvName(a).localeCompare(tvName(b)));
         if (!tvs.length) return;
-        const title = document.createElement('div');
+        // a group folds like «Новых ТВ»: a tap on its title; the choice is kept on this phone
+        const folded = remoteFolded().includes(platform);
+        const title = document.createElement('button');
         title.className = 'r-group';
-        title.textContent = `${label} · ${tvs.filter(t => PLAYING[t.stage]).length}/${tvs.length}`;
+        title.textContent = `${label} · ${tvs.filter(t => PLAYING[t.stage]).length}/${tvs.length} ` + (folded ? '▸' : '▾');
+        title.addEventListener('click', event => {
+            event.stopPropagation();          // the title is redrawn: «a tap outside the remote» must not close it
+            compactRemote();
+            const now = remoteFolded().filter(p => p !== platform);
+            if (!folded) now.push(platform);
+            lsSet('stv_folded', now.join(','));
+            renderStatus(remote.lastStatus);
+        });
         box.appendChild(title);
+        if (folded) return;
         tvs.forEach(tv => {
             const row = document.createElement('button');
             row.className = 'r-tv';
