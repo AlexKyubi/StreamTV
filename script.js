@@ -158,7 +158,7 @@ const TROUBLE = { blocked: 1, retry_wait: 1, recovery_needed: 1 };
 const BRANCHES = { browser: 'браузер', dlna: 'DLNA', cast: 'Cast' };
 const GROUPS = [['tizen', 'Samsung'], ['webos', 'LG'], ['android', 'Android']];
 const onServer = location.port === String(UI_PORT);          // страница открыта с самой программы
-let remote = { tvs: [], managed: false, stream: false, current: null, base: null, lastOk: 0, seenLog: 0, scanning: false };
+let remote = { tvs: [], contents: [], managed: false, stream: false, current: null, base: null, lastOk: 0, seenLog: 0, scanning: false };
 
 function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
 function lsSet(key, value) { try { localStorage.setItem(key, value); } catch (e) { } }
@@ -262,6 +262,7 @@ function renderStatus(data) {
     remote.stream = !!data.stream;
     remote.managed = !!data.managed;
     remote.tvs = data.tvs || [];
+    remote.contents = data.contents || [];
     const o = data.overview || {};
     const active = (o.total || 0) - (o.paused || 0);
     document.getElementById('r-state').textContent = remote.stream ? 'Трансляция идёт' : 'Трансляция остановлена';
@@ -291,7 +292,8 @@ function renderStatus(data) {
             row.className = 'r-tv';
             const dot = PLAYING[tv.stage] ? 'ok' : TROUBLE[tv.stage] ? 'bad' : tv.stage ? 'wait' : '';
             const state = tv.paused ? 'пауза' : (STAGES[tv.stage] || (remote.stream ? 'нет данных' : '—'));
-            const extra = [tv.host, BRANCHES[tv.branch], tv.cache != null ? `кэш ${tv.cache}%` : ''].filter(Boolean).join(' · ');
+            const extra = [tv.host, BRANCHES[tv.branch], contentName(tv), tv.cache != null ? `кэш ${tv.cache}%` : '']
+                .filter(Boolean).join(' · ');
             row.innerHTML = `<span class="r-dot ${dot}"></span><span class="r-name"></span><span class="r-st"></span><span class="r-meta"></span>`;
             row.querySelector('.r-name').textContent = tvName(tv);
             row.querySelector('.r-st').textContent = state;
@@ -314,6 +316,52 @@ function sendControl(command, extra) {
     return true;
 }
 
+// каналы контента ТВ: пустой выбор — все каналы подряд (так по умолчанию)
+function tvSelection(tv) {
+    const ids = remote.contents.map(c => c.id);
+    const own = (tv.selection || []).filter(id => ids.includes(id));
+    return own.length ? own : ids;
+}
+
+function contentName(tv) {
+    const sel = tvSelection(tv);
+    if (!remote.contents.length || sel.length === remote.contents.length) return '';
+    return '«' + remote.contents.filter(c => sel.includes(c.id)).map(c => c.name).join(' + ') + '»';
+}
+
+// мультивыбор: «Все каналы» и переключатель каждого канала (последний канал снять нельзя;
+// при «Все каналы» клик по каналу оставляет только его)
+function fillContents(tv) {
+    const box = document.getElementById('tv-contents');
+    box.querySelectorAll('button').forEach(b => b.remove());
+    box.hidden = remote.contents.length < 2;
+    const sel = tvSelection(tv);
+    const send = ids => {
+        const all = ids.length === remote.contents.length;
+        sendControl('tv', { action: 'content', key: tv.key, content: all ? 'all' : ids.join('+') });
+        document.getElementById('tv-sheet').hidden = true;
+    };
+    const everything = document.createElement('button');
+    everything.textContent = 'Все каналы';
+    everything.classList.toggle('on', sel.length === remote.contents.length);
+    everything.addEventListener('click', () => send(remote.contents.map(c => c.id)));
+    box.appendChild(everything);
+    remote.contents.forEach(content => {
+        const button = document.createElement('button');
+        button.textContent = content.name;
+        button.classList.toggle('on', sel.includes(content.id));
+        button.addEventListener('click', () => {
+            // из «Все каналы» клик оставляет только этот канал; дальше клики добавляют и снимают
+            const everyChannel = sel.length === remote.contents.length;
+            const next = everyChannel ? [content.id]
+                : sel.includes(content.id) ? sel.filter(id => id !== content.id) : sel.concat(content.id);
+            if (!next.length) { addLogEntry('Хотя бы один канал должен остаться'); return; }
+            send(remote.contents.map(c => c.id).filter(id => next.includes(id)));
+        });
+        box.appendChild(button);
+    });
+}
+
 function openTv(tv) {
     remote.current = tv;
     document.getElementById('tv-sheet-title').textContent = tvName(tv);
@@ -322,6 +370,7 @@ function openTv(tv) {
     document.getElementById('act-pause').hidden = !!tv.paused;
     document.getElementById('act-resume').hidden = !tv.paused;
     document.querySelectorAll('#tv-sheet [data-mode]').forEach(b => b.classList.toggle('on', (tv.mode || 'auto') === b.dataset.mode));
+    fillContents(tv);
     document.getElementById('tv-sheet').hidden = false;
 }
 
