@@ -282,7 +282,9 @@ function renderStatus(data) {
     const trouble = document.getElementById('r-trouble');
     trouble.hidden = !(remote.stream && o.trouble);
     trouble.textContent = `Требуют внимания: ${o.trouble || 0}`;
-    document.getElementById('r-manage').textContent = remote.managed ? 'Приостановить управление ТВ' : 'Возобновить управление ТВ';
+    const manage = document.getElementById('r-manage');
+    manage.querySelector('span').textContent = remote.managed ? 'Пауза управления' : 'Возобновить управление';
+    manage.querySelector('i').className = 'fas ' + (remote.managed ? 'fa-pause' : 'fa-play');
     (data.log || []).forEach(([at, text]) => {               // ответы программы на команды
         if (at > remote.seenLog) { remote.seenLog = at; addLogEntry(text); }
     });
@@ -389,7 +391,7 @@ function renderFound(found, scan) {
     const state = document.getElementById('r-scan-state');
     const button = document.getElementById('r-scan');
     button.disabled = !!scan.running;
-    button.textContent = scan.running ? 'Идёт поиск…' : 'Найти новые ТВ';
+    button.querySelector('span').textContent = scan.running ? 'Идёт поиск…' : 'Найти новые ТВ';
     // a search finished since the page last looked: show what it found
     if (scan.at && !scan.running && remote.scanSeen !== null && scan.at !== remote.scanSeen) remote.foundOpen = true;
     remote.scanSeen = scan.at || 0;
@@ -516,15 +518,21 @@ function openTv(tv) {
     document.getElementById('act-pause').hidden = !!tv.paused;
     document.getElementById('act-resume').hidden = !tv.paused;
     renderSettings(tv);
+    // pairing: an outlined call to action only when the TV is not paired
+    const unpaired = tv.pairing === 'waiting' || tv.pairing === 'gave_up';
+    const pair = document.getElementById('act-pair');
+    pair.classList.toggle('warn', unpaired);
+    pair.hidden = tv.pairing === 'not_needed';
+    pair.querySelector('span').textContent = unpaired ? 'Запросить сопряжение' : 'Сопрячь заново';
     document.getElementById('tv-sheet').hidden = false;
 }
 
 function setupRemote() {
     // the reply log is one line; a tap shows the last few
     document.getElementById('command-log').addEventListener('click', event => event.currentTarget.classList.toggle('open'));
-    document.querySelector('#sidebar .sidebar-content').addEventListener('click', compactRemote);
+    document.getElementById('sidebar').addEventListener('click', compactRemote);
     document.getElementById('tv-sheet').addEventListener('click', compactRemote);
-    document.querySelectorAll('.sidebar-btn[data-cmd]').forEach(btn => {
+    document.querySelectorAll('#sidebar [data-cmd]').forEach(btn => {
         btn.addEventListener('click', () => {
             const cmd = btn.dataset.cmd;
             if (cmd === 'sync') {

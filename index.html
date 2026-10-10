@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <!-- Подключение иконки -->
     <link rel="icon" href="web/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=20261010-settings2">
+    <link rel="stylesheet" href="styles.css?v=20261010-ergo2">
 
 </head>
 
@@ -52,17 +52,19 @@
                 <div id="r-trouble" class="r-trouble" hidden></div>
             </div>
 
-            <div class="r-sync">
-                <span>Позиция</span>
-                <input id="r-mm" type="number" inputmode="numeric" min="0" max="59" value="0" aria-label="минуты">
-                <b>:</b>
-                <input id="r-ss" type="number" inputmode="numeric" min="0" max="59" value="0" aria-label="секунды">
+            <!-- действия со всеми ТВ: компактная сетка -->
+            <div class="r-actions">
+                <div class="r-sync">
+                    <input id="r-mm" type="number" inputmode="numeric" min="0" max="59" value="0" aria-label="минуты">
+                    <b>:</b>
+                    <input id="r-ss" type="number" inputmode="numeric" min="0" max="59" value="0" aria-label="секунды">
+                    <button class="r-act" data-cmd="sync"><i class="fas fa-clock-rotate-left"></i><span>Синхронизировать</span></button>
+                </div>
+                <button class="r-act" data-cmd="reload"><i class="fas fa-rotate-right"></i><span>Перезапуск показа</span></button>
+                <button class="r-act" data-cmd="wake_all"><i class="fas fa-power-off"></i><span>Включить все ТВ</span></button>
+                <button class="r-act" id="r-manage" data-cmd="manage"><i class="fas fa-pause"></i><span>Пауза управления</span></button>
+                <button class="r-act" id="r-scan" data-cmd="scan"><i class="fas fa-magnifying-glass"></i><span>Найти новые ТВ</span></button>
             </div>
-            <button class="sidebar-btn" data-cmd="sync">Синхронизировать</button>
-            <button class="sidebar-btn" data-cmd="reload">Перезапустить показ на ТВ</button>
-            <button class="sidebar-btn" data-cmd="wake_all">Включить все ТВ</button>
-            <button class="sidebar-btn" id="r-manage" data-cmd="manage">Приостановить управление ТВ</button>
-            <button class="sidebar-btn" id="r-scan" data-cmd="scan">Найти новые ТВ</button>
             <button id="r-scan-state" class="r-small r-center r-link" hidden></button>
             <div id="r-found" class="r-tvs" hidden></div>
 
@@ -91,17 +93,21 @@
     <!-- Действия с одним ТВ -->
     <div id="tv-sheet" class="tv-sheet" hidden>
         <div class="tv-sheet-box">
-            <div id="tv-sheet-title" class="tv-sheet-title"></div>
+            <div class="tv-sheet-head">
+                <div id="tv-sheet-title" class="tv-sheet-title"></div>
+                <button class="r-close" data-act="close" aria-label="Закрыть">✕</button>
+            </div>
             <div id="tv-sheet-info" class="r-small"></div>
-            <button class="sidebar-btn" data-act="wake">Включить ТВ</button>
-            <button class="sidebar-btn" data-act="restart">Перезапустить показ</button>
-            <button class="sidebar-btn" data-act="pause" id="act-pause">Пауза показа</button>
-            <button class="sidebar-btn" data-act="resume" id="act-resume">Возобновить показ</button>
+            <div class="r-grid">
+                <button class="r-act" data-act="wake"><i class="fas fa-power-off"></i><span>Включить</span></button>
+                <button class="r-act" data-act="restart"><i class="fas fa-rotate-right"></i><span>Перезапустить</span></button>
+                <button class="r-act" data-act="pause" id="act-pause"><i class="fas fa-pause"></i><span>Пауза</span></button>
+                <button class="r-act" data-act="resume" id="act-resume"><i class="fas fa-play"></i><span>Возобновить</span></button>
+                <button class="r-act" data-act="cache"><i class="fas fa-broom"></i><span>Очистить кэш</span></button>
+            </div>
             <!-- настройки ТВ: строка «название — текущее значение ›», выбор в списке снизу -->
             <div id="tv-settings" class="r-settings"></div>
-            <button class="sidebar-btn" data-act="pair">Запросить сопряжение</button>
-            <button class="sidebar-btn" data-act="cache">Очистить кэш роликов</button>
-            <button class="sidebar-btn" data-act="close">Закрыть</button>
+            <button class="r-act r-wide" data-act="pair" id="act-pair"><i class="fas fa-link"></i><span>Запросить сопряжение</span></button>
         </div>
     </div>
 
@@ -483,7 +489,7 @@
         <p>StreamTV &copy; 2025</p>
     </footer>
 
-    <script src="script.js?v=20261010-settings2">
+    <script src="script.js?v=20261010-ergo2">
     </script>
 
 </body>

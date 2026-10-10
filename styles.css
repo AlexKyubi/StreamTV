@@ -907,3 +907,35 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 .r-picker-btns .sidebar-btn[hidden] { display: none; }
 .r-picker-list.multi .r-check { border-radius: 4px; }
 .r-picker-list.multi .r-option.on .r-check { background: var(--primary); box-shadow: inset 0 0 0 3px #0b0b0b; }
+/* ---------- пульт: компактные действия (2 в ряд, иконки), тонкая строка связи ---------- */
+.r-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 10px 4px; }
+.r-sync { grid-column: 1 / -1; display: flex; align-items: center; gap: 5px; margin: 0; }
+.r-sync input { width: 42px; padding: 7px 2px; }
+.r-sync .r-act { flex: 1; }
+.r-act {
+    display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 8px;
+    font-size: 13px; line-height: 1.2; color: #e4e4e4; background: rgba(255, 255, 255, .05);
+    border: 1px solid #3a3a3a; border-radius: 10px; cursor: pointer; text-align: center;
+}
+.r-act i { color: var(--text); font-size: 14px; flex: 0 0 auto; }
+.r-act:active { background: rgba(0, 255, 0, .12); }
+.r-act:disabled { opacity: .45; }
+.r-act.warn { border-color: var(--text); color: var(--text); background: rgba(214, 67, 6, .1); }
+.r-act[hidden] { display: none !important; }
+.r-wide { width: auto; margin: 8px 5% 4px; }
+#tv-sheet .r-wide { width: 90%; }
+#sidebar .ws-status.connected { font-size: 11px; padding: 2px 8px; margin: 6px 10px 0; background: none; border: none;
+                                 color: #6fbf6f; box-shadow: none; text-align: left; }
+/* карточка ТВ: крестик в углу вместо кнопки «Закрыть», действия сеткой */
+.tv-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.r-close { background: none; border: none; color: #aaa; font-size: 20px; padding: 4px 8px; cursor: pointer; }
+.r-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 5% 4px; }
+/* лого пульта небольшое с самого начала (прячется после первого нажатия) */
+#sidebar .remote-logo { max-height: 120px; width: auto; }
+#sidebar .remote-head { padding: 8px 10px 4px; }
+/* список ТВ плотнее: больше ТВ на экране, строки по-прежнему удобно нажимать */
+#sidebar .r-tvs { gap: 4px; }
+#sidebar .r-tv { padding: 6px 10px; gap: 0 8px; font-size: 14px; min-height: 44px; }
+#sidebar .r-tv .r-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
+#sidebar .r-tv .r-st { font-size: 11.5px; }
+#sidebar .r-group { margin-top: 10px; font-size: 11px; letter-spacing: .04em; }
