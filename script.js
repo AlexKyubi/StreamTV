@@ -23,11 +23,13 @@ var headers = document.querySelectorAll('.accordion-header');
 // Видео YouTube грузятся только когда нужны: главное — после открытия страницы, остальные — при открытии
 // своего раздела. При закрытии раздела видео выгружается (останавливается и освобождает память телефона).
 function loadVideos(root) {
+    if (!root || (sidebar && sidebar.classList.contains('active'))) return;
     root.querySelectorAll('iframe[data-src]').forEach(function (frame) {
         if (!frame.src || frame.src === 'about:blank') frame.src = frame.dataset.src;
     });
 }
 function unloadVideos(root) {
+    if (!root) return;
     root.querySelectorAll('iframe[data-src]').forEach(function (frame) {
         if (frame.src && frame.src !== 'about:blank') frame.src = 'about:blank';
     });
@@ -51,9 +53,10 @@ let touchEndX = 0;
 function openSidebar(open) {
     sidebar.classList.toggle('active', open);
     if (open) {
-        // анимированный логотип (5,8 МБ) грузим только когда пульт открыт
-        var logo = sidebar.querySelector('img[data-src]');
-        if (logo && !logo.src) logo.src = logo.dataset.src;
+        unloadVideos(document); // the remote should not compete with a hidden demonstration decoder
+    } else {
+        var active = document.querySelector('.accordion-header.active');
+        loadVideos(active ? active.nextElementSibling : document.querySelector('.video-section'));
     }
 }
 sidebarToggle.addEventListener('click', function () {
@@ -86,7 +89,7 @@ document.addEventListener('click', function (event) {
     const isClickInSheet = ['tv-sheet', 'r-picker', 'r-codes'].some(id => document.getElementById(id).contains(event.target))
         || !document.contains(event.target);
     if (!isClickInsideSidebar && !isClickOnToggle && !isClickInSheet) {
-        sidebar.classList.remove('active');
+        if (sidebar.classList.contains('active')) openSidebar(false);
     }
 });
 
@@ -153,16 +156,19 @@ const STAGES = {
     healthy: 'играет', page_confirmed: 'играет', playing: 'играет', rejoined: 'играет',
     queued: 'ожидает', opening: 'открывается', loading_hls: 'загрузка', connecting: 'подключение',
     discovering: 'поиск', resolving: 'поиск', waking: 'включается', ip_changed: 'адрес обновлён',
-    recovery_needed: 'восстановление', retry_wait: 'повтор', blocked: 'нужно вмешательство', stopped: 'остановлен'
+    recovery_needed: 'восстановление', retry_wait: 'повтор', blocked: 'нужно вмешательство', stopped: 'остановлен',
+    releasing: 'остановка перед переключением', released: 'готов к переключению', release_failed: 'переключение отложено',
+    release_unconfirmed: 'остановка не подтверждена — новый запуск'
 };
 const PLAYING = { healthy: 1, page_confirmed: 1, playing: 1, rejoined: 1 };
-const TROUBLE = { blocked: 1, retry_wait: 1, recovery_needed: 1 };
-const BRANCHES = { browser: 'браузер', dlna: 'DLNA', cast: 'Cast' };
+const TROUBLE = { blocked: 1, retry_wait: 1, recovery_needed: 1, release_failed: 1 };
+const BRANCHES = { browser: 'браузер', cast_browser: 'браузер через Cast', dlna: 'DLNA', cast: 'Cast' };
+function branchLabel(tv) { return tv.branch === 'browser' ? (tv.platform === 'android' ? 'StreamTV Player' : tv.platform === 'tizen' ? 'штатный браузер' : BRANCHES[tv.branch]) : BRANCHES[tv.branch]; }
 const GROUPS = [['tizen', 'Samsung'], ['webos', 'LG'], ['android', 'Android']];
 const GROUPS_NAME = Object.fromEntries(GROUPS);
 const onServer = location.port === String(UI_PORT);          // страница открыта с самой программы
 let remote = { tvs: [], contents: [], managed: false, stream: false, current: null, base: null, lastOk: 0, seenLog: 0, scanning: false,
-               codes: [], codeKeys: '', found: [], scan: {}, foundOpen: false, scanSeen: null };
+               codes: [], codeKeys: '', found: [], scan: {}, foundOpen: false, scanSeen: null, polling:false };
 
 // сопряжение и способы браузера Android (как в программе)
 const PAIRING = { paired: 'сопряжён', waiting: 'не сопряжён', gave_up: 'не сопряжён',
@@ -196,13 +202,26 @@ function probe(host) {
     return api(base, '/api/ping', {}, 1500).then(data => data && data.app === 'StreamTV' ? base : Promise.reject());
 }
 
+function localHost(value) {
+    try {
+        const parsed = new URL(/^https?:\/\//i.test(value) ? value : 'http://' + value);
+        if (parsed.protocol !== 'http:' || parsed.username || parsed.password) return null;
+        const host = parsed.hostname;
+        if (host === 'localhost') return host;
+        const parts = host.split('.');
+        if (parts.length !== 4 || parts.some(p => !/^\d{1,3}$/.test(p) || Number(p) > 255)) return null;
+        const [a,b] = parts.map(Number);
+        return a === 10 || a === 192 && b === 168 || a === 172 && b >= 16 && b <= 31 || a === 127 ? host : null;
+    } catch (e) { return null; }
+}
+
 async function findServer() {
     if (onServer) { remote.base = ''; return ''; }
     if (remote.scanning) return null;
     remote.scanning = true;
     try {
-        const saved = lsGet('stv_server');
-        const first = [saved, '192.168.1.200'].filter(Boolean);
+        const saved = localHost(lsGet('stv_server') || '');
+        const first = [...new Set([saved, '192.168.1.156', '192.168.1.200'].filter(Boolean))];
         for (const host of first) {
             setConnection('wait', `🔎 Проверяю ${host}…`);
             try { const base = await probe(host); return remember(base, host); } catch (e) { }
@@ -213,7 +232,7 @@ async function findServer() {
         const worker = async () => {
             while (!found && hosts.length) {
                 const host = hosts.shift();
-                try { found = found || await probe(host); if (found) remember(found, host); } catch (e) { }
+                try { const candidate = await probe(host); if (!found) { found = candidate; remember(found, host); } } catch (e) { }
                 done++;
                 if (done % 16 === 0) setConnection('wait', `🔎 Поиск сервера в сети… ${Math.round(done * 100 / 508)}%`);
             }
@@ -233,6 +252,7 @@ function remember(base, host) {
 }
 
 async function connectServer() {
+    if (remote.scanning) return;
     const base = await findServer();
     if (base === null) {
         remote.base = null;
@@ -249,19 +269,23 @@ async function connectServer() {
 
 // ---------- состояние
 function pollStatus() {
-    if (remote.base === null) return;
-    api(remote.base, '/api/status', {}, 5000)
-        .then(data => { remote.lastOk = Date.now(); setConnection('on', '🌐 Подключено к серверу'); renderStatus(data); })
+    if (remote.base === null || remote.polling) return;
+    const base = remote.base;
+    remote.polling = true;
+    api(base, '/api/status', {}, 5000)
+        .then(data => { if (base !== remote.base) return; remote.lastOk = Date.now(); setConnection('on', '🌐 Подключено к серверу'); renderStatus(data); })
         .catch(() => {
+            if (base !== remote.base) return;
             if (Date.now() - remote.lastOk > 12000) {     // связь потеряна: ищем сервер заново
                 remote.base = onServer ? '' : null;
                 if (!onServer) connectServer();
                 else setConnection('off', '📡 Нет соединения с сервером');
             }
-        });
+        }).finally(() => { remote.polling = false; });
 }
 
 function tvName(tv) {
+    if (tv.platform === 'webos' && (tv.model || '').trim()) return tv.model.trim();
     let n = (tv.name || '').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
     n = n.replace(/^\[LG\]\s*/, '').replace(/^webOS TV\s*/, '').replace(/^\[TV\]\s*/, '').trim();
     return n || tv.model || tv.host;
@@ -283,7 +307,7 @@ function renderStatus(data) {
     const active = (o.total || 0) - (o.paused || 0);
     document.getElementById('r-state').textContent = remote.stream ? 'Трансляция идёт' : 'Трансляция остановлена';
     document.getElementById('r-summary').textContent = remote.stream
-        ? `Играют ${o.playing || 0} из ${active} ТВ · браузер ${o.browser || 0}, DLNA ${o.dlna || 0}, Cast ${o.cast || 0}`
+        ? `Играют ${o.playing || 0} из ${active} ТВ · APK/браузер ${o.browser || 0}, браузер Cast ${o.cast_browser || 0}, DLNA ${o.dlna || 0}, Cast ${o.cast || 0}`
           + (o.paused ? ` · на паузе ${o.paused}` : '')
         : 'Запустите трансляцию в программе на компьютере.';
     const trouble = document.getElementById('r-trouble');
@@ -322,7 +346,7 @@ function renderStatus(data) {
             const dot = PLAYING[tv.stage] ? 'ok' : TROUBLE[tv.stage] ? 'bad' : tv.stage ? 'wait' : '';
             const state = tv.paused ? 'пауза' : (STAGES[tv.stage] || (remote.stream ? 'нет данных' : '—'));
             const unpaired = tv.pairing === 'waiting' || tv.pairing === 'gave_up' ? 'не сопряжён' : '';
-            const extra = [tv.host, BRANCHES[tv.branch], contentName(tv), tv.cache != null ? `кэш ${tv.cache}%` : '', unpaired]
+            const extra = [tv.host, branchLabel(tv), contentName(tv), tv.cache != null ? `кэш ${tv.cache}%` : '', unpaired,tv.warning]
                 .filter(Boolean).join(' · ');
             row.innerHTML = `<span class="r-dot ${dot}"></span><span class="r-name"></span><span class="r-st"></span><span class="r-meta"></span>`;
             row.querySelector('.r-name').textContent = tvName(tv);
@@ -341,8 +365,12 @@ function sendControl(command, extra) {
         method: 'POST', headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(Object.assign({ command }, extra || {}))
     }, 5000)
-        .then(() => setTimeout(pollStatus, 700))
-        .catch(() => addLogEntry('Команда не доставлена'));
+        .then(reply => {
+            if (!reply || reply.ok !== true) throw new Error('Command rejected');
+            addLogEntry('Команда принята в очередь');
+            setTimeout(pollStatus, 700);
+        })
+        .catch(error => addLogEntry(error === 429 ? 'Слишком частые команды — подождите немного' : error === 403 ? 'Источник пульта не разрешён' : error === 503 ? 'Программа пока не готова принять команду' : 'Ответ не получен: проверьте состояние перед повтором команды'));
     return true;
 }
 
@@ -425,11 +453,11 @@ function renderFound(found, scan) {
         const row = document.createElement('button');
         row.className = 'r-tv r-new';
         row.innerHTML = '<span class="r-dot"></span><span class="r-name"></span><span class="r-st">добавить</span><span class="r-meta"></span>';
-        row.querySelector('.r-name').textContent = tv.name || tv.model || tv.host;
+        row.querySelector('.r-name').textContent = tvName(tv);
         row.querySelector('.r-meta').textContent = [tv.host, GROUPS_NAME[tv.platform], (tv.ways || []).join(', ')]
             .filter(Boolean).join(' · ');
         row.addEventListener('click', () => {
-            if (confirm(`Добавить ${tv.name || tv.host} в список? Начнётся сопряжение — подтвердите его на экране ТВ.`))
+            if (confirm(`Добавить ${tvName(tv)} в список? Начнётся сопряжение — подтвердите его на экране ТВ.`))
                 sendControl('add_tv', { key: tv.key });
         });
         box.appendChild(row);
@@ -437,7 +465,7 @@ function renderFound(found, scan) {
 }
 
 // ---------- настройки ТВ: строки «название — значение ›», выбор в списке снизу
-const MODE_NAMES = { auto: 'Авто', browser: 'Браузер', dlna: 'DLNA', cast: 'Cast' };
+const MODE_NAMES = { auto: 'Авто', browser: 'Браузер', cast_browser: 'Браузер через Cast', dlna: 'DLNA', cast: 'Cast' };
 
 function settingRow(box, title, value, open) {
     const row = document.createElement('button');
@@ -485,9 +513,10 @@ function renderSettings(tv) {
     const close = () => { document.getElementById('tv-sheet').hidden = true; };
     // способ показа
     const mode = tv.mode || 'auto';
-    settingRow(box, 'Способ показа', MODE_NAMES[mode] || mode, () => openPicker({
-        title: 'Способ показа', hint: 'Авто: браузер, при сбое DLNA, затем Cast.', chosen: [mode],
-        options: Object.keys(MODE_NAMES).map(id => ({ id, text: MODE_NAMES[id],
+    const modeName = id => id === 'browser' ? (tv.platform === 'android' ? 'StreamTV Player' : tv.platform === 'tizen' ? 'Штатный браузер' : MODE_NAMES[id]) : (MODE_NAMES[id] || id);
+    settingRow(box, 'Способ показа', modeName(mode), () => openPicker({
+        title: 'Способ показа', hint: tv.platform === 'android' ? 'Авто: StreamTV Player → браузер Cast → DLNA → Cast.' : tv.platform === 'tizen' ? 'Авто: браузер Cast → штатный браузер → DLNA → Cast. В штатном браузере сохраните адрес StreamTV как домашнюю страницу.' : 'Авто: браузер, при сбое DLNA, затем Cast.', chosen: [mode],
+        options: Object.keys(MODE_NAMES).filter(id => id !== 'cast_browser' || ['android','tizen'].includes(tv.platform)).map(id => ({ id, text: modeName(id),
             disabled: id !== 'auto' && Array.isArray(tv.modes) && !tv.modes.includes(id) })),
         apply: id => { sendControl('tv', { action: 'mode', key: tv.key, mode: id }); close(); },
     }));
@@ -518,8 +547,8 @@ function renderSettings(tv) {
     const ways = tv.ways || [];
     if (tv.platform === 'android' && ways.length) {
         const via = tv.via || 'auto';
-        settingRow(box, 'Браузер', via === 'auto' ? 'Авто' : (WAYS[via] || via), () => openPicker({
-            title: 'Браузер', hint: 'Авто: ADB 5555, затем отладка по Wi-Fi, затем DashCast.', chosen: [via],
+        settingRow(box, 'Запуск Android', via === 'auto' ? 'Авто' : (WAYS[via] || via), () => openPicker({
+            title: 'Запуск Android', hint: 'Авто: StreamTV Player → браузер Cast → DLNA → Cast. ADB запускает APK, DashCast — браузер.', chosen: [via],
             options: [{ id: 'auto', text: 'Авто' }].concat(ways.map(w => ({ id: w, text: WAYS[w] || w }))),
             apply: id => { sendControl('tv', { action: 'browser', key: tv.key, via: id }); close(); },
         }));
@@ -530,8 +559,8 @@ function openTv(tv) {
     remote.current = tv;
     document.getElementById('tv-sheet-title').textContent = tvName(tv);
     document.getElementById('tv-sheet-info').textContent =
-        [tv.model !== tvName(tv) ? tv.model : '', tv.host, tv.branch ? 'показ: ' + BRANCHES[tv.branch] : '',
-         PAIRING[tv.pairing] || '', tv.reason || '']
+        [tv.model !== tvName(tv) ? tv.model : '', tv.host, tv.branch ? 'показ: ' + branchLabel(tv) : '',
+         PAIRING[tv.pairing] || '', tv.reason || '',tv.warning || '']
             .filter(Boolean).join(' · ');
     document.getElementById('act-pause').hidden = !!tv.paused;
     document.getElementById('act-resume').hidden = !tv.paused;
@@ -585,12 +614,15 @@ function setupRemote() {
         if (event.target.id === 'tv-sheet') event.currentTarget.hidden = true;
     });
     document.getElementById('r-retry').addEventListener('click', () => {
-        const host = document.getElementById('r-host').value.trim();
+        const raw = document.getElementById('r-host').value.trim();
+        const host = raw ? localHost(raw) : null;
+        if (raw && !host) { addLogEntry('Укажите локальный IP сервера, например 192.168.1.156'); return; }
         if (host) lsSet('stv_server', host);
         connectServer();
     });
     document.getElementById('r-open').addEventListener('click', () => {
-        const host = document.getElementById('r-host').value.trim() || '192.168.1.200';
+        const host = localHost(document.getElementById('r-host').value.trim() || '192.168.1.156');
+        if (!host) { addLogEntry('Укажите локальный IP сервера, например 192.168.1.156'); return; }
         lsSet('stv_server', host);
         location.href = `http://${host}:${UI_PORT}/`;        // пульт прямо с программы: работает в любом браузере
     });
@@ -601,9 +633,9 @@ function setupRemote() {
 document.addEventListener('DOMContentLoaded', setupRemote);
 
 // Адрес инструкции в тексте: сайт, с которого её открыли, или основной адрес (если открыта с самой программы)
-const SITE_ADDRESS = 'stv.alexkyubi.com';
+const SITE_ADDRESS = 'remote.alexkyubi.com';
 document.addEventListener('DOMContentLoaded', () => {
-    const site = /alexkyubi\.com$/.test(location.hostname) ? location.hostname : SITE_ADDRESS;
+    const site = /(^|\.)alexkyubi\.com$/.test(location.hostname) ? location.hostname : SITE_ADDRESS;
     document.querySelectorAll('.site-address').forEach(el => { el.textContent = site; });
     document.querySelectorAll('.site-link').forEach(el => { el.href = 'https://' + site + '/'; });
 });

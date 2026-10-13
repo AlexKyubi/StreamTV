@@ -945,3 +945,8 @@ footer p { margin: 0; color: #a8b5a8; font-size: 0.9em; }
 #sidebar .r-group { margin-top: 10px; font-size: 11px; letter-spacing: .04em; }
 /* заголовок группы ТВ — кнопка сворачивания */
 #sidebar .r-group { display: block; width: 100%; background: none; border: none; padding: 6px 2px; text-align: left; cursor: pointer; }
+
+/* The phone remote needs no animated 5.9 MB banner or second video decoder. */
+#sidebar .remote-head { height: auto; min-height: 54px; background: #09080d; }
+#sidebar .remote-head > div { padding: 10px 12px; font-size: 13px; }
+#sidebar .remote-head strong { font-size: 17px; }
