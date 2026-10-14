@@ -762,8 +762,6 @@
 .tv-sheet-box { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
 .video-section iframe { width: 560px; height: auto; aspect-ratio: 16 / 9; background: #000; }
 .small-video iframe { width: 320px; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #000; }
-#preview { display: block; width: 100%; max-width: 100%; }
-#preview:fullscreen { object-fit: contain; background: #000; border: 0; border-radius: 0; }
 .accordion-content { overflow-wrap: anywhere; }
 .accordion-header { scroll-margin-top: calc(var(--nav-h, 60px) + 8px); }
 .sidebar-btn, .r-tv, #sidebar-toggle { touch-action: manipulation; }

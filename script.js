@@ -135,15 +135,6 @@ headers.forEach(function (header) {
     });
 });
 
-// Переключение полноэкранного режима img
-function toggleFullscreen(img) {
-    if (!document.fullscreenElement) {
-        img.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
-}
-
 
 
 // ====================================================================
