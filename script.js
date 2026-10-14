@@ -298,8 +298,7 @@ function renderStatus(data) {
     const active = (o.total || 0) - (o.paused || 0);
     document.getElementById('r-state').textContent = remote.stream ? 'Трансляция идёт' : 'Трансляция остановлена';
     document.getElementById('r-summary').textContent = remote.stream
-        ? `Играют ${o.playing || 0} из ${active} ТВ · APK/браузер ${o.browser || 0}, браузер Cast ${o.cast_browser || 0}, DLNA ${o.dlna || 0}, Cast ${o.cast || 0}`
-          + (o.paused ? ` · на паузе ${o.paused}` : '')
+        ? `Играют ${o.playing || 0} из ${active} ТВ` + (o.paused ? ` · на паузе ${o.paused}` : '')
         : 'Запустите трансляцию в программе на компьютере.';
     const trouble = document.getElementById('r-trouble');
     trouble.hidden = !(remote.stream && o.trouble);
