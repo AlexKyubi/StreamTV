@@ -139,7 +139,8 @@ headers.forEach(function (header) {
 
 // ====================================================================
 //  Пульт. Работает и со страницы программы (http://IP:4040), и с опубликованного сайта:
-//  тогда сам находит StreamTV в локальной сети (сохранённый адрес → 192.168.1.200 → перебор подсети).
+//  тогда сам находит StreamTV в локальной сети (сохранённый адрес → 192.168.1.156/.200 → перебор подсети
+//  сервера: той, где он был найден в прошлый раз, иначе сети магазина 192.168.1.x).
 //  Данные: GET /api/status, команды: POST /api/command (без WebSocket — он недоступен с https-сайта).
 // ====================================================================
 const UI_PORT = 4040;
@@ -217,15 +218,18 @@ async function findServer() {
             setConnection('wait', `🔎 Проверяю ${host}…`);
             try { const base = await probe(host); return remember(base, host); } catch (e) { }
         }
+        // только сеть сервера: перебор чужой подсети уходил на роутер впустую (254 лишних запроса)
+        const net = (saved && saved !== 'localhost' ? saved : '192.168.1.0').split('.').slice(0, 3).join('.');
         const hosts = [];
-        ['192.168.1', '192.168.0'].forEach(net => { for (let i = 1; i < 255; i++) hosts.push(`${net}.${i}`); });
+        for (let i = 1; i < 255; i++) hosts.push(`${net}.${i}`);
+        const total = hosts.length;
         let done = 0, found = null;
         const worker = async () => {
             while (!found && hosts.length) {
                 const host = hosts.shift();
                 try { const candidate = await probe(host); if (!found) { found = candidate; remember(found, host); } } catch (e) { }
                 done++;
-                if (done % 16 === 0) setConnection('wait', `🔎 Поиск сервера в сети… ${Math.round(done * 100 / 508)}%`);
+                if (done % 16 === 0) setConnection('wait', `🔎 Поиск сервера в сети… ${Math.round(done * 100 / total)}%`);
             }
         };
         await Promise.all(Array.from({ length: 24 }, worker));
@@ -260,7 +264,8 @@ async function connectServer() {
 
 // ---------- состояние
 function pollStatus() {
-    if (remote.base === null || remote.polling) return;
+    // пульт свёрнут или экран телефона погас: не опрашиваем (каждый опрос — десятки КБ по Wi-Fi магазина)
+    if (remote.base === null || remote.polling || document.hidden) return;
     const base = remote.base;
     remote.polling = true;
     api(base, '/api/status', {}, 5000)
@@ -618,6 +623,11 @@ function setupRemote() {
     });
     connectServer();
     setInterval(pollStatus, 3000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) return;
+        remote.lastOk = Date.now();          // пауза — не обрыв связи: без поиска сервера заново
+        if (remote.base === null) connectServer(); else pollStatus();
+    });
 }
 
 document.addEventListener('DOMContentLoaded', setupRemote);
