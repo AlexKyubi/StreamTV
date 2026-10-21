@@ -139,7 +139,7 @@ headers.forEach(function (header) {
 
 // ====================================================================
 //  Пульт. Работает и со страницы программы (http://IP:4040), и с опубликованного сайта:
-//  тогда сам находит StreamTV в локальной сети (сохранённый адрес → 192.168.1.156/.200 → перебор подсети
+//  тогда сам находит StreamTV в локальной сети (сохранённый адрес → перебор подсети
 //  сервера: той, где он был найден в прошлый раз, иначе сети магазина 192.168.1.x).
 //  Данные: GET /api/status, команды: POST /api/command (без WebSocket — он недоступен с https-сайта).
 // ====================================================================
@@ -213,7 +213,7 @@ async function findServer() {
     remote.scanning = true;
     try {
         const saved = localHost(lsGet('stv_server') || '');
-        const first = [...new Set([saved, '192.168.1.156', '192.168.1.200'].filter(Boolean))];
+        const first = [...new Set([saved].filter(Boolean))];
         for (const host of first) {
             setConnection('wait', `🔎 Проверяю ${host}…`);
             try { const base = await probe(host); return remember(base, host); } catch (e) { }
@@ -251,7 +251,7 @@ async function connectServer() {
     const base = await findServer();
     if (base === null) {
         remote.base = null;
-        const host = lsGet('stv_server') || '192.168.1.200';
+        const host = lsGet('stv_server') || '';
         document.getElementById('r-host').value = host;
         setConnection('off', '📡 Нет соединения с сервером');
         document.getElementById('r-state').textContent = 'Сервер StreamTV не найден';
@@ -611,13 +611,13 @@ function setupRemote() {
     document.getElementById('r-retry').addEventListener('click', () => {
         const raw = document.getElementById('r-host').value.trim();
         const host = raw ? localHost(raw) : null;
-        if (raw && !host) { addLogEntry('Укажите локальный IP сервера, например 192.168.1.156'); return; }
+        if (raw && !host) { addLogEntry('Укажите локальный IP сервера, например 192.168.1.10'); return; }
         if (host) lsSet('stv_server', host);
         connectServer();
     });
     document.getElementById('r-open').addEventListener('click', () => {
-        const host = localHost(document.getElementById('r-host').value.trim() || '192.168.1.156');
-        if (!host) { addLogEntry('Укажите локальный IP сервера, например 192.168.1.156'); return; }
+        const host = localHost(document.getElementById('r-host').value.trim());
+        if (!host) { addLogEntry('Укажите локальный IP сервера, например 192.168.1.10'); return; }
         lsSet('stv_server', host);
         location.href = `http://${host}:${UI_PORT}/`;        // пульт прямо с программы: работает в любом браузере
     });
